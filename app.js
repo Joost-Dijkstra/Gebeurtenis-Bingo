@@ -4,6 +4,12 @@ const STORAGE_KEYS = {
   lastName: "party-bingo-last-name",
 };
 
+const DEFAULT_CONFIG = {
+  url: "https://jkysqjzzowqcimxwjroz.supabase.co",
+  anonKey: "sb_publishable_t4A4ufm2lJV1p9ILWrKANQ_tjNBmBhC",
+  publicAppUrl: "https://joost-dijkstra.github.io/Gebeurtenis-Bingo/",
+};
+
 const REFRESH_DELAY_MS = 180;
 const TOAST_LIFETIME_MS = 3200;
 
@@ -11,7 +17,7 @@ const appElement = document.querySelector("#app");
 const toastElement = document.querySelector("#toast-stack");
 
 const state = {
-  config: loadJson(STORAGE_KEYS.config) ?? { url: "", anonKey: "", publicAppUrl: "" },
+  config: { ...DEFAULT_CONFIG, ...(loadJson(STORAGE_KEYS.config) ?? {}) },
   session: loadJson(STORAGE_KEYS.session),
   lastName: localStorage.getItem(STORAGE_KEYS.lastName) ?? "",
   prefillCode: readCodeFromUrl(),
