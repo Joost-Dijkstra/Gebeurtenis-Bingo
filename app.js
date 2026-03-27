@@ -6,7 +6,7 @@ const STORAGE_KEYS = {
 
 const DEFAULT_CONFIG = {
   url: "https://jkysqjzzowqcimxwjroz.supabase.co",
-  anonKey: "sb_publishable_t4A4ufm2lJV1p9ILWrKANQ_tjNBmBhC",
+  anonKey: "sb_publishable_t4A4ufm2IJV1p9ILWrKANQ_tjNBmBhC",
   publicAppUrl: "https://joost-dijkstra.github.io/Gebeurtenis-Bingo/",
 };
 
