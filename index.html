@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Party Bingo</title>
+    <meta
+      name="description"
+      content="Mobile-first realtime bingo met gebeurtenissen voor feestjes en sociale bijeenkomsten."
+    >
+    <meta name="theme-color" content="#ff6b57">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=Space+Grotesk:wght@500;700&display=swap"
+      rel="stylesheet"
+    >
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div class="ambient ambient-a"></div>
+    <div class="ambient ambient-b"></div>
+
+    <div class="app-shell">
+      <header class="hero">
+        <p class="eyebrow">Party Bingo</p>
+        <h1>Realtime party bingo met gebeurtenissen in plaats van cijfers.</h1>
+        <p class="hero-copy">
+          Iedereen voegt gebeurtenissen toe, iedereen mag markeren wat echt gebeurd is,
+          en kaarten vinken alleen automatisch af op basis van de gezamenlijke lijst.
+        </p>
+      </header>
+
+      <main id="app" class="app-root" aria-live="polite">
+        <noscript>Schakel JavaScript in om Party Bingo te spelen.</noscript>
+      </main>
+    </div>
+
+    <div id="toast-stack" class="toast-stack" aria-live="polite" aria-atomic="true"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
