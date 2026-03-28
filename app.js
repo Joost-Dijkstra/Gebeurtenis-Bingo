@@ -24,6 +24,7 @@ const state = {
   prefillCode: readCodeFromUrl(),
   activeTab: "kaart",
   eventSearch: "",
+  eventDraftText: "",
   gameInfoCollapsed: false,
   showInviteSheet: false,
   showSettingsSheet: false,
@@ -425,6 +426,7 @@ function clearSession({ keepUrlCode = false } = {}) {
   state.showSettingsSheet = false;
   state.gameInfoCollapsed = false;
   state.eventSearch = "";
+  state.eventDraftText = "";
   resetDraftDrag(false);
   state.isHydrating = false;
   state.isMutating = false;
@@ -744,29 +746,80 @@ function renderToasts() {
 }
 
 function render() {
+  const focusState = captureFocusState();
   document.body.classList.toggle("body-in-game", Boolean(state.session?.gameId && state.game));
   document.body.dataset.activeTab = state.session?.gameId && state.game ? state.activeTab : "landing";
 
   if (!state.session) {
     appElement.innerHTML = renderLobby();
     renderToasts();
+    restoreFocusState(focusState);
     return;
   }
 
   if (state.isHydrating && !state.game) {
     appElement.innerHTML = renderLoadingState();
     renderToasts();
+    restoreFocusState(focusState);
     return;
   }
 
   if (!state.game) {
     appElement.innerHTML = renderLobby();
     renderToasts();
+    restoreFocusState(focusState);
     return;
   }
 
   appElement.innerHTML = renderGameView();
   renderToasts();
+  restoreFocusState(focusState);
+}
+
+function captureFocusState() {
+  const activeElement = document.activeElement;
+
+  if (!(activeElement instanceof HTMLInputElement) && !(activeElement instanceof HTMLTextAreaElement)) {
+    return null;
+  }
+
+  if (!appElement.contains(activeElement)) {
+    return null;
+  }
+
+  const formName = activeElement.form?.dataset?.form;
+  const fieldName = activeElement.name;
+
+  if (!formName || !fieldName) {
+    return null;
+  }
+
+  return {
+    formName,
+    fieldName,
+    selectionStart: activeElement.selectionStart,
+    selectionEnd: activeElement.selectionEnd,
+  };
+}
+
+function restoreFocusState(focusState) {
+  if (!focusState) {
+    return;
+  }
+
+  const field = appElement.querySelector(
+    `form[data-form="${focusState.formName}"] [name="${focusState.fieldName}"]`
+  );
+
+  if (!(field instanceof HTMLInputElement) && !(field instanceof HTMLTextAreaElement)) {
+    return;
+  }
+
+  field.focus({ preventScroll: true });
+
+  if (typeof focusState.selectionStart === "number" && typeof focusState.selectionEnd === "number") {
+    field.setSelectionRange(focusState.selectionStart, focusState.selectionEnd);
+  }
 }
 
 function renderLoadingState() {
@@ -1488,6 +1541,7 @@ function renderEventListPanel(showAddForm) {
                     name="eventText"
                     maxlength="60"
                     placeholder="Bijvoorbeeld iemand morst drinken"
+                    value="${escapeHtml(state.eventDraftText)}"
                     ${state.isMutating ? "disabled" : ""}
                     required
                   >
@@ -1981,6 +2035,14 @@ function handleInput(event) {
   if (inputName === "event-search") {
     state.eventSearch = String(event.target.value || "");
     render();
+    return;
+  }
+
+  if (
+    event.target?.name === "eventText" &&
+    event.target?.form?.dataset?.form === "add-event"
+  ) {
+    state.eventDraftText = String(event.target.value || "");
   }
 }
 
@@ -2059,6 +2121,7 @@ async function addEvent(text) {
       throw error;
     }
 
+    state.eventDraftText = "";
     pushToast("Gebeurtenis toegevoegd.", "success");
     await loadSnapshot();
   });
