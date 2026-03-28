@@ -502,11 +502,13 @@ body.body-in-game .hero-copy {
   right: 0.75rem;
   bottom: calc(0.7rem + env(safe-area-inset-bottom, 0px));
   z-index: 12;
-  display: flex;
-  flex-direction: row;
+  display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
   gap: 0.55rem;
   padding: 0.55rem;
+  width: auto;
+  max-width: calc(100vw - 1.5rem);
   border-radius: 24px;
   background: rgba(255, 250, 241, 0.94);
   border: 1px solid rgba(173, 126, 75, 0.14);
@@ -523,7 +525,7 @@ body.body-in-game .hero-copy {
   color: var(--muted);
   font-weight: 800;
   display: grid;
-  flex: 1 1 0;
+  width: 100%;
   min-width: 0;
   justify-items: center;
   align-content: center;
@@ -740,6 +742,9 @@ body.body-in-game .hero-copy {
 .board-cell > span,
 .board-check {
   position: relative;
+}
+
+.board-cell > span {
   z-index: 1;
 }
 
@@ -810,13 +815,14 @@ body.body-in-game .hero-copy {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(99, 214, 107, 0.1), rgba(99, 214, 107, 0.18));
-  color: rgba(45, 169, 91, 0.3);
-  font-size: clamp(2.6rem, 10vw, 4.2rem);
+  background: transparent;
+  color: rgba(45, 169, 91, 0.24);
+  font-size: clamp(3.8rem, 16vw, 6rem);
   font-weight: 900;
   letter-spacing: -0.08em;
   pointer-events: none;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.28);
+  z-index: 2;
 }
 
 .drag-ghost {
