@@ -531,32 +531,32 @@ function getStatusMeta() {
     case "collecting_events":
       return {
         title: "Gebeurtenissen verzamelen",
-        copy: "Iedereen kan nu gebeurtenissen toevoegen. Exacte dubbels worden direct geblokkeerd.",
+        copy: "Iedereen kan toevoegen.",
       };
     case "choosing_board_size":
       return {
         title: "Formaat kiezen",
-        copy: "De lijst staat vast. De host kiest nu of het spel op een 3x3 of 4x4 kaart gespeeld wordt.",
+        copy: "Host kiest 3x3 of 4x4.",
       };
     case "building_cards":
       return {
         title: "Kaarten samenstellen",
-        copy: "Iedere speler kiest exact zijn eigen gebeurtenissen. Vakjes worden later alleen automatisch afgevinkt.",
+        copy: "Kies je kaart.",
       };
     case "playing":
       return {
         title: "Spel bezig",
-        copy: "Iedereen ziet dezelfde gebeurtenissenlijst. Er zijn nu twee ranglijsten: eerste volledige rij en volledige kaart.",
+        copy: "Alles loopt live mee.",
       };
     case "finished":
       return {
         title: "Bingo gevallen",
-        copy: "Het spel is afgerond. De eindstand hieronder laat zien wie een complete kaart had.",
+        copy: "Bekijk de uitslag.",
       };
     default:
       return {
         title: "Party Bingo",
-        copy: "Maak een spel aan of join via de code van de host.",
+        copy: "Maak een lobby of join.",
       };
   }
 }
@@ -690,8 +690,7 @@ function renderLoadingState() {
   return `
     <section class="panel panel-pad stack">
       <p class="eyebrow">Party Bingo</p>
-      <h2>Spel wordt geladen...</h2>
-      <p class="subtitle">We halen de laatste stand van de lobby, gebeurtenissen en kaarten op.</p>
+      <h2>Laden...</h2>
     </section>
   `;
 }
@@ -717,7 +716,6 @@ function renderLobby() {
         <div>
           <p class="eyebrow">${configReady ? "1. Spel starten" : "2. Spel starten"}</p>
           <h2>Nieuwe lobby maken</h2>
-          <p class="subtitle">De host krijgt alleen de minimale extra rechten die nodig zijn voor de flow.</p>
         </div>
 
         <form data-form="create-game" class="stack">
@@ -742,7 +740,6 @@ function renderLobby() {
         <div>
           <p class="eyebrow">${configReady ? "2. Meespelen" : "3. Meespelen"}</p>
           <h2>Join via code</h2>
-          <p class="subtitle">Gebruik de spelcode van de host of open direct de gedeelde link.</p>
         </div>
 
         <form data-form="join-game" class="stack">
@@ -788,9 +785,6 @@ function renderSettingsPanel(isPrimary = false) {
         <div>
           <p class="eyebrow">Supabase koppelen</p>
           <h2>Projectinstellingen</h2>
-          <p class="subtitle">
-            Pas dit alleen aan als je een ander Supabase-project wilt gebruiken.
-          </p>
         </div>
         <span class="${isConfigured() ? "chip chip-success" : "chip chip-muted"}">
           ${isConfigured() ? "Gekoppeld" : "Niet gekoppeld"}
@@ -974,9 +968,8 @@ function renderCardTab() {
         <div>
           <p class="eyebrow">Kaart</p>
           <h3>Nog niet actief</h3>
-          <p class="subtitle compact-copy">De bingokaart komt in beeld zodra de lijst gesloten is en het formaat is gekozen.</p>
         </div>
-        <div class="notice">Tot die tijd speelt alles zich af in de gebeurtenissenlijst en lobby.</div>
+        <div class="notice">Nog niet beschikbaar.</div>
       </article>
     </section>
   `;
@@ -1015,7 +1008,6 @@ function renderLobbyTab(statusMeta, scoreRows, activeCount, requiredCount) {
           <div>
             <p class="eyebrow">Lobby</p>
             <h3>Speloverzicht</h3>
-            <p class="subtitle compact-copy">${escapeHtml(statusMeta.copy)}</p>
           </div>
           <span class="chip chip-accent">${escapeHtml(state.game.code)}</span>
         </div>
@@ -1046,7 +1038,7 @@ function renderLobbyTab(statusMeta, scoreRows, activeCount, requiredCount) {
           isLocalFileMode()
             ? `
                 <div class="notice">
-                  Je draait lokaal. Deel voorlopig alleen code ${escapeHtml(state.game.code)} of gebruik een publieke app-URL.
+                  Deel voorlopig alleen code ${escapeHtml(state.game.code)}.
                 </div>
               `
             : ""
@@ -1082,8 +1074,7 @@ function renderInviteSheet() {
         <div class="title-row">
           <div>
             <p class="eyebrow">Uitnodigen</p>
-            <h3>Laat anderen meespelen</h3>
-            <p class="subtitle compact-copy">Deel de code of stuur direct de link door.</p>
+            <h3>Nodig uit</h3>
           </div>
           <button class="btn btn-small btn-outline" data-action="close-invite-sheet">Sluiten</button>
         </div>
@@ -1094,7 +1085,7 @@ function renderInviteSheet() {
         </div>
 
         <div class="notice">
-          ${isLocalFileMode() ? "Je draait lokaal. Deel vooral de spelcode." : escapeHtml(shareUrl)}
+          ${isLocalFileMode() ? "Deel de spelcode." : escapeHtml(shareUrl)}
         </div>
 
         <div class="stack">
@@ -1111,7 +1102,7 @@ function renderLobbyPlayers() {
     <article class="panel panel-pad stack">
       <div>
         <p class="eyebrow">Spelers</p>
-        <h3>Wie zit er in de lobby</h3>
+        <h3>Spelers</h3>
       </div>
 
       <ul class="roster-list">
@@ -1145,8 +1136,8 @@ function renderAwardsPanel() {
 
   return `
     <section class="split">
-      ${renderAwardColumn("Eerste rij", "Geldt voor horizontaal, verticaal en beide diagonalen.", lineAwards)}
-      ${renderAwardColumn("Volle kaart", "Volledige kaarten krijgen doorlopende plekken. Het spel stopt dus niet na plek 1.", fullCardAwards)}
+      ${renderAwardColumn("Eerste rij", "", lineAwards)}
+      ${renderAwardColumn("Volle kaart", "", fullCardAwards)}
     </section>
   `;
 }
@@ -1157,7 +1148,7 @@ function renderAwardColumn(title, description, awards) {
       <div>
         <p class="eyebrow">Ranglijst</p>
         <h3>${escapeHtml(title)}</h3>
-        <p class="subtitle">${escapeHtml(description)}</p>
+        ${description ? `<p class="subtitle">${escapeHtml(description)}</p>` : ""}
       </div>
 
       ${
@@ -1180,7 +1171,7 @@ function renderAwardColumn(title, description, awards) {
                   .join("")}
               </ul>
             `
-          : '<div class="notice">Nog niemand heeft deze mijlpaal gehaald.</div>'
+          : '<div class="notice">Nog leeg.</div>'
       }
     </article>
   `;
@@ -1198,7 +1189,6 @@ function renderHostPanel(scoreRows, activeCount) {
           <div>
             <p class="eyebrow">Host acties</p>
             <h3>Sluit de gebeurtenissenfase</h3>
-            <p class="subtitle">Sluit pas als de groep klaar is. Je hebt minimaal 9 gebeurtenissen nodig.</p>
           </div>
           <span class="chip ${activeCount >= 9 ? "chip-success" : "chip-muted"}">${activeCount}/9 minimum</span>
         </div>
@@ -1218,7 +1208,6 @@ function renderHostPanel(scoreRows, activeCount) {
         <div>
           <p class="eyebrow">Host acties</p>
           <h3>Kies het kaartformaat</h3>
-          <p class="subtitle">Na deze stap gaan spelers hun persoonlijke kaarten kiezen.</p>
         </div>
 
         <div class="button-row">
@@ -1240,7 +1229,7 @@ function renderHostPanel(scoreRows, activeCount) {
           </button>
         </div>
 
-        <p class="helper">3x3 heeft 9 gebeurtenissen nodig. 4x4 heeft er 16 nodig.</p>
+        <p class="helper">3x3: 9 nodig. 4x4: 16 nodig.</p>
       </section>
     `;
   }
@@ -1253,8 +1242,7 @@ function renderHostPanel(scoreRows, activeCount) {
         <div class="title-row">
           <div>
             <p class="eyebrow">Host acties</p>
-            <h3>Start het spel zodra iedereen klaar is</h3>
-            <p class="subtitle">Kaarten blijven aanpasbaar totdat jij start. Daarna kunnen alleen gebeurtenissen nog gemarkeerd worden.</p>
+            <h3>Start spel</h3>
           </div>
           <span class="chip ${allPlayersReady() ? "chip-success" : "chip-muted"}">${readyPlayers}/${scoreRows.length} klaar</span>
         </div>
@@ -1302,7 +1290,7 @@ function renderBuildCardsStage() {
           <div>
             <p class="eyebrow">Kaart kiezen</p>
             <h3>Jouw kaart van ${state.game.board_size}x${state.game.board_size}</h3>
-            <p class="subtitle compact-copy">Kies exact ${requiredCount} gebeurtenissen in het gebeurtenissen-tabblad. Houd daarna een vakje vast en sleep het naar de juiste plek.</p>
+            <p class="subtitle compact-copy">Kies ${requiredCount}. Sleep om te ordenen.</p>
           </div>
           <span class="chip ${selectionCount === requiredCount ? "chip-success" : "chip-accent"}">
             ${selectionCount}/${requiredCount} gekozen
@@ -1315,7 +1303,7 @@ function renderBuildCardsStage() {
           <button class="btn btn-primary" data-action="save-card" ${state.isMutating || selectionCount !== requiredCount ? "disabled" : ""}>
             Kaart opslaan
           </button>
-          ${state.draftDirty ? '<span class="chip chip-accent">Nog niet opgeslagen</span>' : '<span class="chip chip-muted">Opgeslagen selectie geladen</span>'}
+          ${state.draftDirty ? '<span class="chip chip-accent">Niet opgeslagen</span>' : '<span class="chip chip-muted">Opgeslagen</span>'}
         </div>
       </article>
     </section>
@@ -1340,7 +1328,6 @@ function renderSelectionPanel() {
       <div>
         <p class="eyebrow">Beschikbare gebeurtenissen</p>
         <h3>Kies je kaartvakken</h3>
-        <p class="subtitle compact-copy">Tik om toe te voegen of te verwijderen. Alles update live.</p>
       </div>
 
       ${renderEventSearchInput("Zoek in gebeurtenissen voor je kaart")}
@@ -1348,7 +1335,7 @@ function renderSelectionPanel() {
       ${
         activeEvents.length
           ? `<ul class="selection-list">${activeEvents.map((event) => renderSelectionItem(event, requiredCount)).join("")}</ul>`
-          : '<div class="notice">Er zijn nog geen actieve gebeurtenissen om uit te kiezen.</div>'
+          : '<div class="notice">Nog leeg.</div>'
       }
     </article>
   `;
@@ -1383,8 +1370,7 @@ function renderEventListPanel(showAddForm) {
       <div class="title-row">
         <div>
           <p class="eyebrow">Gebeurtenissenlijst</p>
-          <h3>Markeer wat echt gebeurd is</h3>
-          <p class="subtitle compact-copy">Deze lijst is leidend voor iedereen. Kaarten volgen automatisch.</p>
+          <h3>Gebeurtenissen</h3>
         </div>
         <span class="chip chip-muted">${activeEvents.length} zichtbaar</span>
       </div>
@@ -1410,7 +1396,6 @@ function renderEventListPanel(showAddForm) {
 
                 <div class="button-row">
                   <button class="btn btn-primary" type="submit" ${state.isMutating ? "disabled" : ""}>Toevoegen</button>
-                  <p class="helper tiny">Maximaal 60 tekens. Exacte dubbels worden geweigerd.</p>
                 </div>
               </form>
             `
@@ -1420,7 +1405,7 @@ function renderEventListPanel(showAddForm) {
       ${
         activeEvents.length
           ? `<ul class="event-list">${activeEvents.map((event) => renderEventItem(event)).join("")}</ul>`
-          : '<div class="notice">De lijst is nog leeg. Voeg samen nieuwe gebeurtenissen toe om de lobby te vullen.</div>'
+          : '<div class="notice">Nog geen gebeurtenissen.</div>'
       }
     </article>
   `;
@@ -1488,7 +1473,6 @@ function renderPersonalBoardPanel() {
         <div>
           <p class="eyebrow">Jouw bingokaart</p>
           <h3>${escapeHtml(state.session.playerName)}</h3>
-          <p class="subtitle compact-copy">Dit is je hoofdscherm. Vakjes reageren automatisch op de gezamenlijke lijst.</p>
         </div>
         <span class="chip ${checkedCount === requiredCount && requiredCount ? "chip-success" : "chip-accent"}">
           ${checkedCount}/${requiredCount} afgevinkt
@@ -1496,8 +1480,8 @@ function renderPersonalBoardPanel() {
       </div>
 
       <div class="meta-row">
-        ${myLineAward ? `<span class="chip chip-teal">Rij #${myLineAward.placement}</span>` : '<span class="chip chip-muted">Nog geen rij-prijs</span>'}
-        ${myFullCardAward ? `<span class="chip chip-success">Volle kaart #${myFullCardAward.placement}</span>` : '<span class="chip chip-muted">Nog geen volle-kaart-prijs</span>'}
+        ${myLineAward ? `<span class="chip chip-teal">Rij #${myLineAward.placement}</span>` : ""}
+        ${myFullCardAward ? `<span class="chip chip-success">Volle kaart #${myFullCardAward.placement}</span>` : ""}
       </div>
 
       ${renderCardPreview(myEntries.map((entry) => entry.event_id), false)}
@@ -1510,7 +1494,6 @@ function renderBingoBanner() {
     <section class="bingo-banner">
       <p class="eyebrow">Bingo</p>
       <p class="bingo-word">VOLLE KAART</p>
-      <p class="bingo-copy">De eindranglijst blijft doorlopen voor plek 2, 3 en verder.</p>
     </section>
   `;
 }
@@ -1601,8 +1584,7 @@ function renderScoreboard(scoreRows, requiredCount) {
       <div class="title-row">
         <div>
           <p class="eyebrow">Scorebord</p>
-          <h3>Voortgang van alle spelers</h3>
-          <p class="subtitle">Tijdens het samenstellen zie je wie klaar is. Tijdens het spel zie je hoeveel vakjes per speler geraakt zijn.</p>
+          <h3>Stand</h3>
         </div>
       </div>
 
@@ -1639,7 +1621,7 @@ function renderScoreboard(scoreRows, requiredCount) {
                   .join("")}
               </ul>
             `
-          : '<div class="notice">Nog geen spelers gevonden.</div>'
+          : '<div class="notice">Nog leeg.</div>'
       }
     </section>
   `;
