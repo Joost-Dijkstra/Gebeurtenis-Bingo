@@ -1659,7 +1659,7 @@ function renderCardPreview(sourceEventIds, isDraft) {
         ${canUndoFromCard ? `aria-label="Herstel ${escapeHtml(event.text)}"` : ""}
         ${!event && !isDraft ? "disabled" : ""}
       >
-        ${checked && !isDraft ? '<span class="board-check">&#10003;</span>' : ""}
+        ${checked && !isDraft ? '<span class="board-check" aria-hidden="true"></span>' : ""}
         <span class="board-label">${escapeHtml(event?.text ?? "Leeg vak")}</span>
       </button>
     `;
