@@ -1432,6 +1432,7 @@ function renderEventItem(event) {
     : `Toegevoegd door ${getPlayerName(event.created_by_player_id)}`;
   const isMergeSource = state.mergeSourceEventId === event.id;
   const canChooseTarget = canHostEditEvents() && state.mergeSourceEventId && !isMergeSource;
+  const canUndo = event.triggered && event.triggered_by_player_id === state.session.playerId;
 
   return `
     <li class="event-item ${event.triggered ? "is-triggered" : ""}">
@@ -1442,7 +1443,9 @@ function renderEventItem(event) {
         </div>
         ${
           event.triggered
-            ? '<span class="chip chip-success">Gebeurd</span>'
+            ? canUndo
+              ? `<button class="btn btn-small btn-outline" data-action="undo-event" data-event-id="${event.id}" ${state.isMutating ? "disabled" : ""}>Herstel</button>`
+              : '<span class="chip chip-success">Gebeurd</span>'
             : state.game.status === "playing"
               ? `<button class="btn btn-small btn-success" data-action="trigger-event" data-event-id="${event.id}" ${state.isMutating ? "disabled" : ""}>Gebeurd</button>`
               : '<span class="chip chip-muted">Nog niet actief</span>'
@@ -1539,6 +1542,13 @@ function renderCardPreview(sourceEventIds, isDraft) {
     const entry = eventId ? myEntriesByEventId.get(eventId) : null;
     const checked = Boolean(entry?.checked);
     const canTriggerFromCard = !isDraft && state.game?.status === "playing" && event && !checked && !event.triggered;
+    const canUndoFromCard =
+      !isDraft &&
+      ["playing", "finished"].includes(state.game?.status) &&
+      event &&
+      checked &&
+      event.triggered &&
+      event.triggered_by_player_id === state.session.playerId;
     const hit = entry && state.recentEntryIds.includes(entry.id);
     const isDragSource = isDraft && state.drag.active && state.drag.sourceIndex === index;
     const isDragTarget = isDraft && state.drag.active && state.drag.overIndex === index && state.drag.sourceIndex !== index;
@@ -1549,7 +1559,7 @@ function renderCardPreview(sourceEventIds, isDraft) {
       checked ? "is-checked" : "",
       hit ? "is-hit" : "",
       isDraft && event ? "is-draft" : "",
-      canTriggerFromCard ? "is-actionable" : "",
+      canTriggerFromCard || canUndoFromCard ? "is-actionable" : "",
       isDragSource ? "is-drag-source" : "",
       isDragTarget ? "is-drag-target" : "",
     ]
@@ -1562,11 +1572,12 @@ function renderCardPreview(sourceEventIds, isDraft) {
         type="button"
         ${isDraft ? `data-draft-slot="${index}" data-has-event="${event ? "true" : "false"}" data-draft-label="${escapeHtml(event?.text ?? "")}"` : ""}
         ${canTriggerFromCard ? `data-action="trigger-event" data-event-id="${event.id}"` : ""}
+        ${canUndoFromCard ? `data-action="undo-event" data-event-id="${event.id}"` : ""}
         ${canTriggerFromCard ? `aria-label="Markeer ${escapeHtml(event.text)} als gebeurd"` : ""}
+        ${canUndoFromCard ? `aria-label="Herstel ${escapeHtml(event.text)}"` : ""}
         ${!event && !isDraft ? "disabled" : ""}
       >
         ${checked && !isDraft ? '<span class="board-check">&#10003;</span>' : ""}
-        ${canTriggerFromCard ? '<span class="board-tap-hint">Tik om te markeren</span>' : ""}
         <span>${escapeHtml(event?.text ?? "Leeg vak")}</span>
       </button>
     `;
@@ -1811,6 +1822,21 @@ async function handleClick(event) {
 
   if (action === "trigger-event") {
     await triggerEvent(eventId);
+    return;
+  }
+
+  if (action === "undo-event") {
+    const undoEventRecord = getActiveEvents().find((item) => item.id === eventId);
+    if (!undoEventRecord || undoEventRecord.triggered_by_player_id !== state.session.playerId) {
+      pushToast("Alleen je eigen markering kun je herstellen.", "error");
+      return;
+    }
+
+    if (!window.confirm(`Herstel "${undoEventRecord.text}" als per ongeluk gemarkeerd?`)) {
+      return;
+    }
+
+    await untriggerEvent(eventId);
     return;
   }
 
@@ -2169,6 +2195,24 @@ async function triggerEvent(eventId) {
     }
 
     await loadSnapshot();
+  });
+}
+
+async function untriggerEvent(eventId) {
+  await runMutation(async () => {
+    const { error } = await state.supabase.rpc("untrigger_event", {
+      p_game_id: state.session.gameId,
+      p_event_id: eventId,
+      p_player_id: state.session.playerId,
+      p_session_token: state.session.sessionToken,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    await loadSnapshot();
+    pushToast("Gebeurtenis hersteld.", "success");
   });
 }
 
