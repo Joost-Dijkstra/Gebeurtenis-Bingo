@@ -502,7 +502,8 @@ body.body-in-game .hero-copy {
   right: 0.75rem;
   bottom: calc(0.7rem + env(safe-area-inset-bottom, 0px));
   z-index: 12;
-  display: grid;
+  display: flex;
+  flex-direction: row;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.55rem;
   padding: 0.55rem;
@@ -522,6 +523,8 @@ body.body-in-game .hero-copy {
   color: var(--muted);
   font-weight: 800;
   display: grid;
+  flex: 1 1 0;
+  min-width: 0;
   justify-items: center;
   align-content: center;
   gap: 0.28rem;
@@ -740,6 +743,10 @@ body.body-in-game .hero-copy {
   z-index: 1;
 }
 
+.board-cell > span {
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
 .board-cell::after {
   content: "";
   position: absolute;
@@ -772,6 +779,10 @@ body.body-in-game .hero-copy {
     0 12px 22px rgba(99, 214, 107, 0.18);
 }
 
+.board-cell.is-checked > span {
+  opacity: 0.92;
+}
+
 .board-cell.is-hit {
   animation: hit-pop 0.48s cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -793,17 +804,19 @@ body.body-in-game .hero-copy {
 
 .board-check {
   position: absolute;
-  top: 0.55rem;
-  right: 0.55rem;
-  width: 1.5rem;
-  height: 1.5rem;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  background: rgba(99, 214, 107, 0.16);
-  color: var(--success);
-  font-size: 0.95rem;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(99, 214, 107, 0.1), rgba(99, 214, 107, 0.18));
+  color: rgba(45, 169, 91, 0.3);
+  font-size: clamp(2.6rem, 10vw, 4.2rem);
   font-weight: 900;
+  letter-spacing: -0.08em;
+  pointer-events: none;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
 }
 
 .drag-ghost {
@@ -980,11 +993,11 @@ body.body-in-game .hero-copy {
 @keyframes check-pop {
   0% {
     opacity: 0;
-    transform: scale(0.4);
+    transform: scale(0.55);
   }
   70% {
     opacity: 1;
-    transform: scale(1.12);
+    transform: scale(1.05);
   }
   100% {
     opacity: 1;
