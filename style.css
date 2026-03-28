@@ -334,6 +334,23 @@ body.body-in-game .hero-copy {
   z-index: 3;
 }
 
+.game-status-card.is-collapsed {
+  gap: 0.55rem;
+}
+
+.status-top-row,
+.status-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.status-actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .compact-copy {
   max-width: 34rem;
 }
@@ -342,6 +359,10 @@ body.body-in-game .hero-copy {
   display: flex;
   flex-wrap: wrap;
   gap: 0.6rem;
+}
+
+.compact-stats.is-collapsed {
+  gap: 0.45rem;
 }
 
 .game-stage-strip {
@@ -385,6 +406,11 @@ body.body-in-game .hero-copy {
   background: linear-gradient(135deg, rgba(92, 242, 176, 0.2), rgba(193, 206, 216, 0.12));
   color: var(--text);
   box-shadow: inset 0 0 0 1px rgba(92, 242, 176, 0.22);
+}
+
+.btn-invite {
+  min-height: 52px;
+  padding-inline: 1rem;
 }
 
 .status-title {
@@ -454,6 +480,29 @@ body.body-in-game .hero-copy {
   margin-top: 0.8rem;
 }
 
+.invite-block {
+  gap: 0.75rem;
+}
+
+.invite-code-card {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  background: rgba(92, 242, 176, 0.08);
+  border: 1px solid rgba(92, 242, 176, 0.18);
+}
+
+.invite-code-card strong {
+  font-family: var(--font-display);
+  font-size: 1.45rem;
+  letter-spacing: 0.08em;
+}
+
+.invite-code-card.is-large strong {
+  font-size: clamp(1.9rem, 9vw, 2.8rem);
+}
+
 .board-grid {
   display: grid;
   gap: 0.65rem;
@@ -472,6 +521,7 @@ body.body-in-game .hero-copy {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 100%;
   min-height: 5.4rem;
   padding: 0.8rem;
   border-radius: 20px;
@@ -482,6 +532,7 @@ body.body-in-game .hero-copy {
   border: 1px solid rgba(221, 230, 237, 0.1);
   overflow: hidden;
   transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  color: var(--text);
 }
 
 .board-cell.is-draft {
@@ -489,6 +540,15 @@ body.body-in-game .hero-copy {
   padding-top: 1rem;
   touch-action: none;
   cursor: grab;
+}
+
+.board-cell.is-actionable {
+  cursor: pointer;
+  box-shadow: inset 0 0 0 1px rgba(92, 242, 176, 0.08);
+}
+
+.board-cell.is-actionable:active {
+  transform: scale(0.98);
 }
 
 .board-cell::after {
@@ -538,6 +598,18 @@ body.body-in-game .hero-copy {
   color: var(--success);
   font-size: 0.95rem;
   font-weight: 900;
+}
+
+.board-tap-hint {
+  position: absolute;
+  top: 0.55rem;
+  left: 0.55rem;
+  padding: 0.22rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(92, 242, 176, 0.14);
+  color: var(--success);
+  font-size: 0.7rem;
+  font-weight: 800;
 }
 
 .drag-ghost {
@@ -599,6 +671,25 @@ body.body-in-game .hero-copy {
   color: var(--muted);
 }
 
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 18;
+  padding: 1rem;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(3, 6, 9, 0.55);
+  backdrop-filter: blur(10px);
+}
+
+.invite-sheet {
+  width: 100%;
+  max-width: 32rem;
+  margin: 0 auto;
+  border-bottom-left-radius: 28px;
+  border-bottom-right-radius: 28px;
+}
+
 .bingo-banner {
   padding: 1.2rem;
   border-radius: 24px;
@@ -625,6 +716,13 @@ body.body-in-game .hero-copy {
 .score-item.is-winner {
   background: rgba(242, 185, 75, 0.16);
   border-color: rgba(242, 185, 75, 0.3);
+}
+
+.event-item .btn-success,
+.event-item .btn-secondary,
+.event-item .btn-outline,
+.event-item .btn-danger {
+  min-height: 46px;
 }
 
 .toast-stack {
@@ -717,6 +815,14 @@ body.body-in-game .hero-copy {
     right: auto;
     width: min(42rem, calc(100vw - 3rem));
     transform: translateX(-50%);
+  }
+
+  .sheet-backdrop {
+    align-items: center;
+  }
+
+  .invite-sheet {
+    border-radius: 28px;
   }
 }
 

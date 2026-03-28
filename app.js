@@ -23,6 +23,8 @@ const state = {
   prefillCode: readCodeFromUrl(),
   activeTab: "kaart",
   eventSearch: "",
+  gameInfoCollapsed: false,
+  showInviteSheet: false,
   supabase: null,
   game: null,
   players: [],
@@ -249,6 +251,10 @@ function syncActiveTab(previousStatus) {
   if (!state.activeTab || previousStatus !== nextStatus) {
     state.activeTab = getDefaultTabForStatus(nextStatus);
   }
+
+  if (previousStatus !== nextStatus) {
+    state.gameInfoCollapsed = nextStatus === "playing" || nextStatus === "finished";
+  }
 }
 
 function syncDraftSelection() {
@@ -371,6 +377,9 @@ function clearSession({ keepUrlCode = false } = {}) {
   state.mergeSourceEventId = null;
   state.recentEntryIds = [];
   state.justFinished = false;
+  state.showInviteSheet = false;
+  state.gameInfoCollapsed = false;
+  state.eventSearch = "";
   resetDraftDrag(false);
   state.isHydrating = false;
   state.isMutating = false;
@@ -803,17 +812,27 @@ function renderGameView() {
   const scoreRows = getScoreRows();
   const activeEvents = getActiveEvents();
   const triggeredCount = activeEvents.filter((event) => event.triggered).length;
+  const isCollapsed = state.gameInfoCollapsed && (state.game.status === "playing" || state.game.status === "finished");
 
   return `
     <section class="game-shell">
-      <section class="panel panel-pad status-banner game-status-card">
-        <div>
-          <p class="eyebrow">Spelcode ${escapeHtml(state.game.code)}</p>
-          <h2 class="status-title">${escapeHtml(statusMeta.title)}</h2>
-          <p class="subtitle compact-copy">${escapeHtml(statusMeta.copy)}</p>
+      <section class="panel panel-pad status-banner game-status-card ${isCollapsed ? "is-collapsed" : ""}">
+        <div class="status-top-row">
+          <div>
+            <p class="eyebrow">Spelcode ${escapeHtml(state.game.code)}</p>
+            <h2 class="status-title">${escapeHtml(statusMeta.title)}</h2>
+            ${isCollapsed ? "" : `<p class="subtitle compact-copy">${escapeHtml(statusMeta.copy)}</p>`}
+          </div>
+
+          <div class="status-actions">
+            <button class="btn btn-small btn-primary btn-invite" data-action="open-invite-sheet">Uitnodigen</button>
+            <button class="btn btn-small btn-outline" data-action="toggle-game-info">
+              ${isCollapsed ? "Open" : "Klap in"}
+            </button>
+          </div>
         </div>
 
-        <div class="compact-stats">
+        <div class="compact-stats ${isCollapsed ? "is-collapsed" : ""}">
           <span class="chip chip-accent">${escapeHtml(state.session.playerName)}</span>
           ${isHost() ? '<span class="chip chip-teal">Host</span>' : ""}
           <span class="chip chip-muted">${state.players.length} spelers</span>
@@ -831,6 +850,7 @@ function renderGameView() {
       </section>
 
       ${renderBottomNavigation()}
+      ${state.showInviteSheet ? renderInviteSheet() : ""}
     </section>
   `;
 }
@@ -942,6 +962,14 @@ function renderLobbyTab(statusMeta, scoreRows, activeCount, requiredCount) {
           <span class="chip chip-accent">${escapeHtml(state.game.code)}</span>
         </div>
 
+        <div class="stack invite-block">
+          <button class="btn btn-primary btn-invite" data-action="open-invite-sheet">Spelers uitnodigen</button>
+          <div class="invite-code-card">
+            <span class="input-label">Spelcode</span>
+            <strong>${escapeHtml(state.game.code)}</strong>
+          </div>
+        </div>
+
         <div class="meta-row">
           <button class="btn btn-secondary" data-action="copy-link">${isLocalFileMode() ? "Kopieer code" : "Kopieer link"}</button>
           <button class="btn btn-outline" data-action="leave-game">Verlaat spel</button>
@@ -972,6 +1000,39 @@ function renderLobbyTab(statusMeta, scoreRows, activeCount, requiredCount) {
           <span class="chip chip-muted">${activeCount} gebeurtenissen</span>
           <span class="chip chip-muted">${state.events.filter((event) => event.triggered).length} gebeurd</span>
           ${requiredCount ? `<span class="chip chip-muted">Kaart ${state.game.board_size}x${state.game.board_size}</span>` : ""}
+        </div>
+      </article>
+    </section>
+  `;
+}
+
+function renderInviteSheet() {
+  const shareUrl = getShareUrl();
+
+  return `
+    <section class="sheet-backdrop" data-action="close-invite-sheet">
+      <article class="invite-sheet panel panel-pad stack" role="dialog" aria-modal="true" aria-label="Spelers uitnodigen">
+        <div class="title-row">
+          <div>
+            <p class="eyebrow">Uitnodigen</p>
+            <h3>Laat anderen meespelen</h3>
+            <p class="subtitle compact-copy">Deel de code of stuur direct de link door.</p>
+          </div>
+          <button class="btn btn-small btn-outline" data-action="close-invite-sheet">Sluiten</button>
+        </div>
+
+        <div class="invite-code-card is-large">
+          <span class="input-label">Spelcode</span>
+          <strong>${escapeHtml(state.game.code)}</strong>
+        </div>
+
+        <div class="notice">
+          ${isLocalFileMode() ? "Je draait lokaal. Deel vooral de spelcode." : escapeHtml(shareUrl)}
+        </div>
+
+        <div class="stack">
+          <button class="btn btn-primary btn-invite" data-action="share-invite">Deel uitnodiging</button>
+          <button class="btn btn-secondary" data-action="copy-link">${isLocalFileMode() ? "Kopieer spelcode" : "Kopieer uitnodigingslink"}</button>
         </div>
       </article>
     </section>
@@ -1410,6 +1471,7 @@ function renderCardPreview(sourceEventIds, isDraft) {
     const event = eventMap.get(eventId);
     const entry = eventId ? myEntriesByEventId.get(eventId) : null;
     const checked = Boolean(entry?.checked);
+    const canTriggerFromCard = !isDraft && state.game?.status === "playing" && event && !checked && !event.triggered;
     const hit = entry && state.recentEntryIds.includes(entry.id);
     const isDragSource = isDraft && state.drag.active && state.drag.sourceIndex === index;
     const isDragTarget = isDraft && state.drag.active && state.drag.overIndex === index && state.drag.sourceIndex !== index;
@@ -1420,6 +1482,7 @@ function renderCardPreview(sourceEventIds, isDraft) {
       checked ? "is-checked" : "",
       hit ? "is-hit" : "",
       isDraft && event ? "is-draft" : "",
+      canTriggerFromCard ? "is-actionable" : "",
       isDragSource ? "is-drag-source" : "",
       isDragTarget ? "is-drag-target" : "",
     ]
@@ -1427,13 +1490,18 @@ function renderCardPreview(sourceEventIds, isDraft) {
       .join(" ");
 
     return `
-      <div
+      <button
         class="${classes}"
+        type="button"
         ${isDraft ? `data-draft-slot="${index}" data-has-event="${event ? "true" : "false"}" data-draft-label="${escapeHtml(event?.text ?? "")}"` : ""}
+        ${canTriggerFromCard ? `data-action="trigger-event" data-event-id="${event.id}"` : ""}
+        ${canTriggerFromCard ? `aria-label="Markeer ${escapeHtml(event.text)} als gebeurd"` : ""}
+        ${!event && !isDraft ? "disabled" : ""}
       >
         ${checked && !isDraft ? '<span class="board-check">&#10003;</span>' : ""}
+        ${canTriggerFromCard ? '<span class="board-tap-hint">Tik om te markeren</span>' : ""}
         <span>${escapeHtml(event?.text ?? "Leeg vak")}</span>
-      </div>
+      </button>
     `;
   }).join("");
 
@@ -1575,6 +1643,26 @@ async function handleClick(event) {
     return;
   }
 
+  if (action === "toggle-game-info") {
+    state.gameInfoCollapsed = !state.gameInfoCollapsed;
+    render();
+    return;
+  }
+
+  if (action === "open-invite-sheet") {
+    state.showInviteSheet = true;
+    render();
+    return;
+  }
+
+  if (action === "close-invite-sheet") {
+    if (event.target === actionTarget || actionTarget.dataset.action === "close-invite-sheet") {
+      state.showInviteSheet = false;
+      render();
+    }
+    return;
+  }
+
   if (action === "leave-game") {
     if (!window.confirm("Weet je zeker dat je deze lokale sessie wilt verlaten?")) {
       return;
@@ -1594,9 +1682,16 @@ async function handleClick(event) {
         await navigator.clipboard.writeText(getShareUrl());
         pushToast("Link gekopieerd.", "success");
       }
+      state.showInviteSheet = false;
+      render();
     } catch (error) {
       pushToast("Kopieren lukt niet op dit apparaat.", "error");
     }
+    return;
+  }
+
+  if (action === "share-invite") {
+    await shareInvite();
     return;
   }
 
@@ -1697,6 +1792,31 @@ function handleInput(event) {
   if (inputName === "event-search") {
     state.eventSearch = String(event.target.value || "");
     render();
+  }
+}
+
+async function shareInvite() {
+  const shareUrl = getShareUrl();
+
+  try {
+    if (navigator.share && !isLocalFileMode()) {
+      await navigator.share({
+        title: `Party Bingo ${state.game.code}`,
+        text: `Speel mee in Party Bingo. Code: ${state.game.code}`,
+        url: shareUrl,
+      });
+      state.showInviteSheet = false;
+      render();
+      pushToast("Uitnodiging gedeeld.", "success");
+      return;
+    }
+
+    await navigator.clipboard.writeText(isLocalFileMode() ? state.game.code : shareUrl);
+    state.showInviteSheet = false;
+    render();
+    pushToast(isLocalFileMode() ? "Spelcode gekopieerd." : "Uitnodigingslink gekopieerd.", "success");
+  } catch (error) {
+    pushToast("Delen of kopieren lukt niet op dit apparaat.", "error");
   }
 }
 
