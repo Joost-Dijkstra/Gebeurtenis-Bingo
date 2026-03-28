@@ -21,6 +21,8 @@ const state = {
   session: loadJson(STORAGE_KEYS.session),
   lastName: localStorage.getItem(STORAGE_KEYS.lastName) ?? "",
   prefillCode: readCodeFromUrl(),
+  activeTab: "kaart",
+  eventSearch: "",
   supabase: null,
   game: null,
   players: [],
@@ -52,6 +54,7 @@ const state = {
 
 document.addEventListener("submit", handleSubmit);
 document.addEventListener("click", handleClick);
+document.addEventListener("input", handleInput);
 document.addEventListener("pointerdown", handleDraftPointerDown);
 document.addEventListener("pointermove", handleDraftPointerMove);
 document.addEventListener("pointerup", handleDraftPointerUp);
@@ -214,10 +217,38 @@ async function loadSnapshot() {
   writeCodeToUrl(state.game.code);
 
   syncDraftSelection();
+  syncActiveTab(previousStatus);
   syncRecentChecks(previousCheckedIds);
   syncAwardUpdates(previousAwardIds, hadLoadedGame);
   syncFinishAnimation(previousStatus);
   render();
+}
+
+function getDefaultTabForStatus(status) {
+  switch (status) {
+    case "collecting_events":
+      return "gebeurtenissen";
+    case "choosing_board_size":
+      return "lobby";
+    case "building_cards":
+    case "playing":
+    case "finished":
+    default:
+      return "kaart";
+  }
+}
+
+function syncActiveTab(previousStatus) {
+  const nextStatus = state.game?.status;
+
+  if (!nextStatus) {
+    state.activeTab = "kaart";
+    return;
+  }
+
+  if (!state.activeTab || previousStatus !== nextStatus) {
+    state.activeTab = getDefaultTabForStatus(nextStatus);
+  }
 }
 
 function syncDraftSelection() {
@@ -379,6 +410,16 @@ function getActiveEvents() {
       }
       return left.triggered ? 1 : -1;
     });
+}
+
+function getFilteredEvents() {
+  const term = state.eventSearch.trim().toLocaleLowerCase("nl");
+
+  if (!term) {
+    return getActiveEvents();
+  }
+
+  return getActiveEvents().filter((event) => event.text.toLocaleLowerCase("nl").includes(term));
 }
 
 function getMyCardEntries() {
@@ -593,6 +634,8 @@ function renderToasts() {
 }
 
 function render() {
+  document.body.classList.toggle("body-in-game", Boolean(state.session?.gameId && state.game));
+
   if (!state.session) {
     appElement.innerHTML = renderLobby();
     renderToasts();
@@ -762,56 +805,209 @@ function renderGameView() {
   const triggeredCount = activeEvents.filter((event) => event.triggered).length;
 
   return `
-    <section class="panel panel-pad status-banner">
-      <div class="title-row">
+    <section class="game-shell">
+      <section class="panel panel-pad status-banner game-status-card">
         <div>
           <p class="eyebrow">Spelcode ${escapeHtml(state.game.code)}</p>
           <h2 class="status-title">${escapeHtml(statusMeta.title)}</h2>
-          <p class="subtitle">${escapeHtml(statusMeta.copy)}</p>
+          <p class="subtitle compact-copy">${escapeHtml(statusMeta.copy)}</p>
+        </div>
+
+        <div class="compact-stats">
+          <span class="chip chip-accent">${escapeHtml(state.session.playerName)}</span>
+          ${isHost() ? '<span class="chip chip-teal">Host</span>' : ""}
+          <span class="chip chip-muted">${state.players.length} spelers</span>
+          <span class="chip chip-muted">${triggeredCount}/${activeEvents.length} gebeurd</span>
+          ${requiredCount ? `<span class="chip chip-muted">${state.game.board_size}x${state.game.board_size}</span>` : ""}
+        </div>
+      </section>
+
+      <section class="game-stage-strip">
+        <div class="phase-row">${getPhaseChips()}</div>
+      </section>
+
+      <section class="tab-screen">
+        ${renderActiveTab(statusMeta, scoreRows, activeEvents.length, requiredCount)}
+      </section>
+
+      ${renderBottomNavigation()}
+    </section>
+  `;
+}
+
+function renderActiveTab(statusMeta, scoreRows, activeCount, requiredCount) {
+  switch (state.activeTab) {
+    case "gebeurtenissen":
+      return renderEventsTab();
+    case "ranglijst":
+      return renderRankingsTab(scoreRows, requiredCount);
+    case "lobby":
+      return renderLobbyTab(statusMeta, scoreRows, activeCount, requiredCount);
+    case "kaart":
+    default:
+      return renderCardTab();
+  }
+}
+
+function renderBottomNavigation() {
+  const tabs = [
+    ["kaart", "Kaart"],
+    ["gebeurtenissen", "Gebeurtenissen"],
+    ["ranglijst", "Ranglijst"],
+    ["lobby", "Lobby"],
+  ];
+
+  return `
+    <nav class="bottom-nav" aria-label="Hoofdnavigatie">
+      ${tabs
+        .map(
+          ([tabId, label]) => `
+            <button
+              class="bottom-nav-button ${state.activeTab === tabId ? "is-active" : ""}"
+              data-action="switch-tab"
+              data-tab="${tabId}"
+            >
+              <span>${label}</span>
+            </button>
+          `
+        )
+        .join("")}
+    </nav>
+  `;
+}
+
+function renderCardTab() {
+  if (state.game.status === "building_cards") {
+    return renderBuildCardsStage();
+  }
+
+  if (state.game.status === "playing" || state.game.status === "finished") {
+    return `
+      <section class="stack">
+        ${state.justFinished ? renderBingoBanner() : ""}
+        ${renderPersonalBoardPanel()}
+      </section>
+    `;
+  }
+
+  return `
+    <section class="stack">
+      <article class="panel panel-pad stack">
+        <div>
+          <p class="eyebrow">Kaart</p>
+          <h3>Nog niet actief</h3>
+          <p class="subtitle compact-copy">De bingokaart komt in beeld zodra de lijst gesloten is en het formaat is gekozen.</p>
+        </div>
+        <div class="notice">Tot die tijd speelt alles zich af in de gebeurtenissenlijst en lobby.</div>
+      </article>
+    </section>
+  `;
+}
+
+function renderEventsTab() {
+  if (state.game.status === "building_cards") {
+    return `
+      <section class="stack">
+        ${renderSelectionPanel()}
+      </section>
+    `;
+  }
+
+  return `
+    <section class="stack">
+      ${renderEventListPanel(state.game.status === "collecting_events")}
+    </section>
+  `;
+}
+
+function renderRankingsTab(scoreRows, requiredCount) {
+  return `
+    <section class="stack">
+      ${state.game.status === "playing" || state.game.status === "finished" ? renderAwardsPanel() : ""}
+      ${renderScoreboard(scoreRows, requiredCount)}
+    </section>
+  `;
+}
+
+function renderLobbyTab(statusMeta, scoreRows, activeCount, requiredCount) {
+  return `
+    <section class="stack">
+      <article class="panel panel-pad stack">
+        <div class="title-row">
+          <div>
+            <p class="eyebrow">Lobby</p>
+            <h3>Speloverzicht</h3>
+            <p class="subtitle compact-copy">${escapeHtml(statusMeta.copy)}</p>
+          </div>
+          <span class="chip chip-accent">${escapeHtml(state.game.code)}</span>
         </div>
 
         <div class="meta-row">
-          <span class="chip chip-accent">${escapeHtml(state.session.playerName)}</span>
-          ${isHost() ? '<span class="chip chip-teal">Host</span>' : ""}
-          <button class="btn btn-small btn-secondary" data-action="copy-link">${isLocalFileMode() ? "Kopieer code" : "Kopieer link"}</button>
-          <button class="btn btn-small btn-outline" data-action="leave-game">Verlaat spel</button>
+          <button class="btn btn-secondary" data-action="copy-link">${isLocalFileMode() ? "Kopieer code" : "Kopieer link"}</button>
+          <button class="btn btn-outline" data-action="leave-game">Verlaat spel</button>
         </div>
-      </div>
 
-      <div class="phase-row">${getPhaseChips()}</div>
+        ${
+          isLocalFileMode()
+            ? `
+                <div class="notice">
+                  Je draait lokaal. Deel voorlopig alleen code ${escapeHtml(state.game.code)} of gebruik een publieke app-URL.
+                </div>
+              `
+            : ""
+        }
+      </article>
 
-      <div class="meta-row">
-        <span class="chip chip-muted">${state.players.length} spelers</span>
-        <span class="chip chip-muted">${activeEvents.length} actieve gebeurtenissen</span>
-        <span class="chip chip-muted">${triggeredCount} gemarkeerd</span>
-        ${requiredCount ? `<span class="chip chip-muted">Kaart ${state.game.board_size}x${state.game.board_size}</span>` : ""}
-      </div>
+      ${renderLobbyPlayers()}
+      ${renderHostPanel(scoreRows, activeCount)}
+
+      <article class="panel panel-pad stack">
+        <div>
+          <p class="eyebrow">Spelstatus</p>
+          <h3>Kerncijfers</h3>
+        </div>
+
+        <div class="compact-stats">
+          <span class="chip chip-muted">${state.players.length} spelers</span>
+          <span class="chip chip-muted">${activeCount} gebeurtenissen</span>
+          <span class="chip chip-muted">${state.events.filter((event) => event.triggered).length} gebeurd</span>
+          ${requiredCount ? `<span class="chip chip-muted">Kaart ${state.game.board_size}x${state.game.board_size}</span>` : ""}
+        </div>
+      </article>
     </section>
+  `;
+}
 
-    ${
-      isLocalFileMode()
-        ? `
-            <section class="panel panel-pad stack">
-              <div>
-                <p class="eyebrow">Uitnodigen</p>
-                <h3>Je draait nu lokaal vanaf deze computer</h3>
-                <p class="subtitle">
-                  De huidige URL werkt niet op andere telefoons. Zet deze app op een publieke URL en vul die hierboven in bij
-                  "Publieke app URL", of host de map via een bereikbare webserver.
-                </p>
-              </div>
-              <div class="meta-row">
-                <span class="chip chip-accent">Deel voorlopig alleen code ${escapeHtml(state.game.code)}</span>
-              </div>
-            </section>
-          `
-        : ""
-    }
+function renderLobbyPlayers() {
+  return `
+    <article class="panel panel-pad stack">
+      <div>
+        <p class="eyebrow">Spelers</p>
+        <h3>Wie zit er in de lobby</h3>
+      </div>
 
-    ${state.game.status === "playing" ? renderAwardsPanel() : ""}
-    ${renderHostPanel(scoreRows, activeEvents.length)}
-    ${renderStagePanel()}
-    ${renderScoreboard(scoreRows, requiredCount)}
+      <ul class="roster-list">
+        ${state.players
+          .map((player) => {
+            const isCurrentPlayer = player.id === state.session.playerId;
+            const isPlayerHost = player.id === state.game.host_player_id;
+
+            return `
+              <li class="roster-item">
+                <div>
+                  <p class="score-name">${escapeHtml(player.name)}</p>
+                  <p class="score-meta">${isCurrentPlayer ? "Jij" : "Speler"}</p>
+                </div>
+                <div class="meta-row">
+                  ${isCurrentPlayer ? '<span class="chip chip-accent">Jij</span>' : ""}
+                  ${isPlayerHost ? '<span class="chip chip-teal">Host</span>' : ""}
+                </div>
+              </li>
+            `;
+          })
+          .join("")}
+      </ul>
+    </article>
   `;
 }
 
@@ -963,19 +1159,6 @@ function renderEventsStage() {
   return `
     <section class="split">
       ${renderEventListPanel(true)}
-      <article class="panel panel-pad stack">
-        <div>
-          <p class="eyebrow">Persoonlijke kaart</p>
-          <h3>Nog niet actief</h3>
-          <p class="subtitle">
-            De bingokaart wordt pas samengesteld nadat de gebeurtenissenlijst is gesloten en het formaat is gekozen.
-          </p>
-        </div>
-
-        <div class="notice">
-          Iedereen kijkt nu naar dezelfde lijst. Alleen de host kan deze fase afsluiten of later het formaat kiezen.
-        </div>
-      </article>
     </section>
   `;
 }
@@ -985,13 +1168,13 @@ function renderBuildCardsStage() {
   const selectionCount = state.draftSelectionIds.length;
 
   return `
-    <section class="split">
+    <section class="stack">
       <article class="panel panel-pad stack">
         <div class="title-row">
           <div>
             <p class="eyebrow">Kaart kiezen</p>
             <h3>Jouw kaart van ${state.game.board_size}x${state.game.board_size}</h3>
-            <p class="subtitle">Kies exact ${requiredCount} gebeurtenissen. Houd daarna een vakje vast en sleep het naar een andere plek.</p>
+            <p class="subtitle compact-copy">Kies exact ${requiredCount} gebeurtenissen in het gebeurtenissen-tabblad. Houd daarna een vakje vast en sleep het naar de juiste plek.</p>
           </div>
           <span class="chip ${selectionCount === requiredCount ? "chip-success" : "chip-accent"}">
             ${selectionCount}/${requiredCount} gekozen
@@ -1007,8 +1190,6 @@ function renderBuildCardsStage() {
           ${state.draftDirty ? '<span class="chip chip-accent">Nog niet opgeslagen</span>' : '<span class="chip chip-muted">Opgeslagen selectie geladen</span>'}
         </div>
       </article>
-
-      ${renderSelectionPanel()}
     </section>
   `;
 }
@@ -1023,16 +1204,18 @@ function renderPlayingStage() {
 }
 
 function renderSelectionPanel() {
-  const activeEvents = getActiveEvents();
+  const activeEvents = getFilteredEvents();
   const requiredCount = getRequiredCount();
 
   return `
     <article class="panel panel-pad stack">
       <div>
         <p class="eyebrow">Beschikbare gebeurtenissen</p>
-        <h3>Klik om toe te voegen of te verwijderen</h3>
-        <p class="subtitle">Alleen actieve gebeurtenissen tellen mee. Host-correcties worden live doorgevoerd.</p>
+        <h3>Kies je kaartvakken</h3>
+        <p class="subtitle compact-copy">Tik om toe te voegen of te verwijderen. Alles update live.</p>
       </div>
+
+      ${renderEventSearchInput("Zoek in gebeurtenissen voor je kaart")}
 
       ${
         activeEvents.length
@@ -1065,18 +1248,20 @@ function renderSelectionItem(event, requiredCount) {
 }
 
 function renderEventListPanel(showAddForm) {
-  const activeEvents = getActiveEvents();
+  const activeEvents = getFilteredEvents();
 
   return `
     <article class="panel panel-pad stack">
       <div class="title-row">
         <div>
           <p class="eyebrow">Gebeurtenissenlijst</p>
-          <h3>Gezamenlijke lijst voor alle spelers</h3>
-          <p class="subtitle">Alleen deze lijst kan handmatig gemarkeerd worden. Kaartvakjes volgen daarna automatisch.</p>
+          <h3>Markeer wat echt gebeurd is</h3>
+          <p class="subtitle compact-copy">Deze lijst is leidend voor iedereen. Kaarten volgen automatisch.</p>
         </div>
         <span class="chip chip-muted">${activeEvents.length} zichtbaar</span>
       </div>
+
+      ${renderEventSearchInput("Zoek in de gebeurtenissenlijst")}
 
       ${
         showAddForm && state.game.status === "collecting_events"
@@ -1172,7 +1357,7 @@ function renderPersonalBoardPanel() {
         <div>
           <p class="eyebrow">Jouw bingokaart</p>
           <h3>${escapeHtml(state.session.playerName)}</h3>
-          <p class="subtitle">Vakjes zijn read-only en reageren alleen op de wereldwijde gebeurtenissenlijst.</p>
+          <p class="subtitle compact-copy">Dit is je hoofdscherm. Vakjes reageren automatisch op de gezamenlijke lijst.</p>
         </div>
         <span class="chip ${checkedCount === requiredCount && requiredCount ? "chip-success" : "chip-accent"}">
           ${checkedCount}/${requiredCount} afgevinkt
@@ -1186,6 +1371,31 @@ function renderPersonalBoardPanel() {
 
       ${renderCardPreview(myEntries.map((entry) => entry.event_id), false)}
     </article>
+  `;
+}
+
+function renderBingoBanner() {
+  return `
+    <section class="bingo-banner">
+      <p class="eyebrow">Bingo</p>
+      <p class="bingo-word">VOLLE KAART</p>
+      <p class="bingo-copy">De eindranglijst blijft doorlopen voor plek 2, 3 en verder.</p>
+    </section>
+  `;
+}
+
+function renderEventSearchInput(placeholder) {
+  return `
+    <label class="input-group">
+      <span class="input-label">Zoeken</span>
+      <input
+        class="text-input"
+        type="search"
+        data-input="event-search"
+        placeholder="${escapeHtml(placeholder)}"
+        value="${escapeHtml(state.eventSearch)}"
+      >
+    </label>
   `;
 }
 
@@ -1359,6 +1569,12 @@ async function handleClick(event) {
   const eventId = actionTarget.dataset.eventId || "";
   const size = Number(actionTarget.dataset.size);
 
+  if (action === "switch-tab") {
+    state.activeTab = actionTarget.dataset.tab || "kaart";
+    render();
+    return;
+  }
+
   if (action === "leave-game") {
     if (!window.confirm("Weet je zeker dat je deze lokale sessie wilt verlaten?")) {
       return;
@@ -1472,6 +1688,15 @@ async function handleClick(event) {
     }
 
     await mergeEvents(state.mergeSourceEventId, eventId, targetText);
+  }
+}
+
+function handleInput(event) {
+  const inputName = event.target?.dataset?.input;
+
+  if (inputName === "event-search") {
+    state.eventSearch = String(event.target.value || "");
+    render();
   }
 }
 

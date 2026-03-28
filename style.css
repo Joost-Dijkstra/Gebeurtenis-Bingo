@@ -84,9 +84,29 @@ button {
   padding: 1.2rem 1rem 4rem;
 }
 
+body.body-in-game .app-shell {
+  padding-bottom: 6.8rem;
+}
+
 .hero {
   margin-bottom: 1rem;
   padding: 1.4rem;
+}
+
+body.body-in-game .hero {
+  margin-bottom: 0.75rem;
+  padding: 0.6rem 0.2rem 0.3rem;
+}
+
+body.body-in-game .hero h1 {
+  max-width: none;
+  font-size: clamp(1.4rem, 6vw, 2.2rem);
+}
+
+body.body-in-game .hero-copy {
+  margin-top: 0.45rem;
+  max-width: 42rem;
+  font-size: 0.92rem;
 }
 
 .eyebrow {
@@ -303,6 +323,70 @@ button {
   gap: 0.85rem;
 }
 
+.game-shell {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.game-status-card {
+  position: sticky;
+  top: 0.4rem;
+  z-index: 3;
+}
+
+.compact-copy {
+  max-width: 34rem;
+}
+
+.compact-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.game-stage-strip {
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
+}
+
+.tab-screen {
+  display: grid;
+  gap: 1rem;
+}
+
+.bottom-nav {
+  position: fixed;
+  left: 0.75rem;
+  right: 0.75rem;
+  bottom: 0.7rem;
+  z-index: 12;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem;
+  padding: 0.55rem;
+  border-radius: 24px;
+  background: rgba(8, 12, 17, 0.94);
+  border: 1px solid rgba(221, 230, 237, 0.12);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.36);
+  backdrop-filter: blur(24px);
+}
+
+.bottom-nav-button {
+  border: 0;
+  border-radius: 18px;
+  min-height: 56px;
+  padding: 0.8rem 0.5rem;
+  background: transparent;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.bottom-nav-button.is-active {
+  background: linear-gradient(135deg, rgba(92, 242, 176, 0.2), rgba(193, 206, 216, 0.12));
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px rgba(92, 242, 176, 0.22);
+}
+
 .status-title {
   margin: 0;
   font-family: var(--font-display);
@@ -316,7 +400,8 @@ button {
 
 .event-list,
 .score-list,
-.selection-list {
+.selection-list,
+.roster-list {
   display: grid;
   gap: 0.75rem;
   padding: 0;
@@ -326,7 +411,8 @@ button {
 
 .event-item,
 .score-item,
-.selection-item {
+.selection-item,
+.roster-item {
   padding: 0.9rem;
   border-radius: 18px;
   background: rgba(16, 23, 30, 0.92);
@@ -339,7 +425,8 @@ button {
 }
 
 .event-head,
-.score-head {
+.score-head,
+.roster-item {
   display: flex;
   justify-content: space-between;
   gap: 0.75rem;
@@ -543,7 +630,7 @@ button {
 .toast-stack {
   position: fixed;
   right: 1rem;
-  bottom: 1rem;
+  bottom: 5.9rem;
   z-index: 10;
   display: grid;
   gap: 0.75rem;
@@ -616,14 +703,30 @@ button {
     padding: 1.4rem 1.4rem 4rem;
   }
 
+  body.body-in-game .app-shell {
+    padding-bottom: 5rem;
+  }
+
   .grid-cards,
   .split {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .bottom-nav {
+    left: 50%;
+    right: auto;
+    width: min(42rem, calc(100vw - 3rem));
+    transform: translateX(-50%);
   }
 }
 
 @media (min-width: 960px) {
   .layout-play {
     grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  }
+
+  body.body-in-game .hero {
+    padding-left: 0;
+    padding-right: 0;
   }
 }
