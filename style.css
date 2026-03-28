@@ -413,6 +413,87 @@ body.body-in-game .hero-copy {
 .tab-screen {
   display: grid;
   gap: 1rem;
+  --screen-wash: rgba(255, 191, 71, 0.12);
+  --screen-stripe: rgba(255, 191, 71, 0.26);
+}
+
+.screen-kaart {
+  --screen-wash: rgba(99, 214, 107, 0.12);
+  --screen-stripe: rgba(99, 214, 107, 0.28);
+}
+
+.screen-gebeurtenissen {
+  --screen-wash: rgba(255, 191, 71, 0.14);
+  --screen-stripe: rgba(255, 191, 71, 0.3);
+}
+
+.screen-ranglijst {
+  --screen-wash: rgba(155, 109, 242, 0.12);
+  --screen-stripe: rgba(155, 109, 242, 0.28);
+}
+
+.screen-lobby {
+  --screen-wash: rgba(91, 109, 245, 0.12);
+  --screen-stripe: rgba(91, 109, 245, 0.28);
+}
+
+.tab-screen .panel {
+  position: relative;
+}
+
+.tab-screen .panel::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 6px;
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
+  background: linear-gradient(90deg, var(--screen-stripe), transparent 70%);
+  pointer-events: none;
+}
+
+.tab-screen .panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, var(--screen-wash), transparent 38%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.tab-screen .panel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.award-spotlight {
+  padding: 1rem 1.1rem;
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.38), transparent 34%),
+    linear-gradient(135deg, rgba(145, 235, 146, 0.96), rgba(255, 221, 116, 0.92));
+  color: #4b300f;
+  box-shadow: 0 16px 28px rgba(176, 134, 84, 0.22);
+  animation: rank-pop 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.award-spotlight.is-grand {
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.42), transparent 34%),
+    linear-gradient(135deg, rgba(255, 200, 103, 0.98), rgba(255, 148, 111, 0.94));
+}
+
+.award-spotlight h3,
+.award-spotlight p {
+  margin: 0;
+}
+
+.award-spotlight-label {
+  margin-top: 0.25rem;
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+}
 }
 
 .bottom-nav {
@@ -620,6 +701,18 @@ body.body-in-game .hero-copy {
     background-color 160ms ease;
   color: var(--text);
   will-change: transform, box-shadow;
+}
+
+.board-grid .board-cell:not(.is-checked):not(.is-empty):nth-child(3n + 1) {
+  background: linear-gradient(180deg, rgba(255, 250, 241, 0.99), rgba(255, 240, 221, 0.98));
+}
+
+.board-grid .board-cell:not(.is-checked):not(.is-empty):nth-child(3n + 2) {
+  background: linear-gradient(180deg, rgba(255, 252, 245, 0.99), rgba(244, 242, 255, 0.98));
+}
+
+.board-grid .board-cell:not(.is-checked):not(.is-empty):nth-child(3n + 3) {
+  background: linear-gradient(180deg, rgba(255, 252, 247, 0.99), rgba(235, 248, 255, 0.98));
 }
 
 .board-cell.is-draft {
@@ -896,6 +989,21 @@ body.body-in-game .hero-copy {
   100% {
     opacity: 1;
     transform: scale(1);
+  }
+}
+
+@keyframes rank-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.02);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
 

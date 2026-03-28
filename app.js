@@ -38,6 +38,7 @@ const state = {
   pollTimer: null,
   finishTimer: null,
   recentHitTimer: null,
+  awardTimer: null,
   isHydrating: false,
   isMutating: false,
   draftSelectionIds: [],
@@ -45,6 +46,7 @@ const state = {
   mergeSourceEventId: null,
   recentEntryIds: [],
   justFinished: false,
+  awardSpotlight: null,
   drag: {
     active: false,
     pointerId: null,
@@ -404,6 +406,7 @@ function clearSession({ keepUrlCode = false } = {}) {
   window.clearTimeout(state.refreshTimer);
   window.clearTimeout(state.finishTimer);
   window.clearTimeout(state.recentHitTimer);
+  window.clearTimeout(state.awardTimer);
 
   state.session = null;
   state.game = null;
@@ -417,6 +420,7 @@ function clearSession({ keepUrlCode = false } = {}) {
   state.mergeSourceEventId = null;
   state.recentEntryIds = [];
   state.justFinished = false;
+  state.awardSpotlight = null;
   state.showInviteSheet = false;
   state.showSettingsSheet = false;
   state.gameInfoCollapsed = false;
@@ -652,6 +656,45 @@ function syncAwardUpdates(previousAwardIds, hadLoadedGame) {
     const toastType = award.player_id === state.session?.playerId ? "success" : "info";
     pushToast(`${playerName} pakte ${awardLabel} plek #${award.placement}.`, toastType);
   });
+
+  if (freshAwards.length) {
+    const featuredAward =
+      [...freshAwards].sort((left, right) => {
+        if (left.player_id === state.session?.playerId && right.player_id !== state.session?.playerId) {
+          return -1;
+        }
+
+        if (left.player_id !== state.session?.playerId && right.player_id === state.session?.playerId) {
+          return 1;
+        }
+
+        if (left.achievement_type === "full_card" && right.achievement_type !== "full_card") {
+          return -1;
+        }
+
+        if (left.achievement_type !== "full_card" && right.achievement_type === "full_card") {
+          return 1;
+        }
+
+        return left.placement - right.placement;
+      })[0] ?? null;
+
+    if (featuredAward) {
+      const isSelf = featuredAward.player_id === state.session?.playerId;
+      state.awardSpotlight = {
+        playerName: getPlayerName(featuredAward.player_id),
+        label: featuredAward.achievement_type === "line" ? "Eerste rij" : "Volle kaart",
+        placement: featuredAward.placement,
+        isSelf,
+      };
+
+      window.clearTimeout(state.awardTimer);
+      state.awardTimer = window.setTimeout(() => {
+        state.awardSpotlight = null;
+        render();
+      }, 2600);
+    }
+  }
 }
 
 function getShareUrl() {
@@ -702,6 +745,7 @@ function renderToasts() {
 
 function render() {
   document.body.classList.toggle("body-in-game", Boolean(state.session?.gameId && state.game));
+  document.body.dataset.activeTab = state.session?.gameId && state.game ? state.activeTab : "landing";
 
   if (!state.session) {
     appElement.innerHTML = renderLobby();
@@ -900,12 +944,30 @@ function renderGameView() {
 
   return `
     <section class="game-shell">
-      <section class="tab-screen">
+      ${state.awardSpotlight ? renderAwardSpotlight() : ""}
+
+      <section class="tab-screen screen-${state.activeTab}">
         ${renderActiveTab(statusMeta, scoreRows, activeEvents.length, requiredCount)}
       </section>
 
       ${renderBottomNavigation()}
       ${state.showInviteSheet ? renderInviteSheet() : ""}
+    </section>
+  `;
+}
+
+function renderAwardSpotlight() {
+  const spotlight = state.awardSpotlight;
+
+  if (!spotlight) {
+    return "";
+  }
+
+  return `
+    <section class="award-spotlight ${spotlight.label === "Volle kaart" ? "is-grand" : ""}">
+      <p class="eyebrow">Rank Up</p>
+      <h3>${spotlight.isSelf ? "Jij scoort" : `${escapeHtml(spotlight.playerName)} scoort`}</h3>
+      <p class="award-spotlight-label">${escapeHtml(spotlight.label)} #${spotlight.placement}</p>
     </section>
   `;
 }
