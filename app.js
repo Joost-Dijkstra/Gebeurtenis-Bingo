@@ -11,6 +11,7 @@ const DEFAULT_CONFIG = {
 };
 
 const REFRESH_DELAY_MS = 180;
+const POLL_INTERVAL_MS = 1200;
 const TOAST_LIFETIME_MS = 3200;
 
 const appElement = document.querySelector("#app");
@@ -34,6 +35,7 @@ const state = {
   awards: [],
   channel: null,
   refreshTimer: null,
+  pollTimer: null,
   finishTimer: null,
   recentHitTimer: null,
   isHydrating: false,
@@ -167,7 +169,70 @@ async function loadSnapshot() {
   const previousAwardIds = new Set((state.awards || []).map((award) => award.id));
 
   const gameId = state.session.gameId;
+  const snapshot = await fetchGameSnapshot(gameId);
 
+  state.game = snapshot.game;
+  state.players = snapshot.players ?? [];
+  state.events = snapshot.events ?? [];
+  state.cardEntries = snapshot.cardEntries ?? [];
+  state.awards = snapshot.awards ?? [];
+
+  if (!state.players.some((player) => player.id === state.session.playerId)) {
+    throw new Error("Deze speler bestaat niet meer in dit spel.");
+  }
+
+  state.session.gameCode = state.game.code;
+  saveJson(STORAGE_KEYS.session, state.session);
+  writeCodeToUrl(state.game.code);
+
+  syncDraftSelection();
+  syncActiveTab(previousStatus);
+  syncRecentChecks(previousCheckedIds);
+  syncAwardUpdates(previousAwardIds, hadLoadedGame);
+  syncFinishAnimation(previousStatus);
+  render();
+}
+
+async function fetchGameSnapshot(gameId) {
+  try {
+    const { data, error } = await state.supabase.rpc("get_game_snapshot", {
+      p_game_id: gameId,
+      p_player_id: state.session.playerId,
+      p_session_token: state.session.sessionToken,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return {
+      game: data?.game ?? null,
+      players: data?.players ?? [],
+      events: data?.events ?? [],
+      cardEntries: data?.card_entries ?? [],
+      awards: data?.awards ?? [],
+    };
+  } catch (error) {
+    if (!shouldFallbackToLegacySnapshot(error)) {
+      throw error;
+    }
+
+    return await fetchLegacySnapshot(gameId);
+  }
+}
+
+function shouldFallbackToLegacySnapshot(error) {
+  const message = String(error?.message || error?.details || "");
+  const code = String(error?.code || "");
+
+  return (
+    message.includes("get_game_snapshot") ||
+    message.includes("Could not find the function") ||
+    code === "42883"
+  );
+}
+
+async function fetchLegacySnapshot(gameId) {
   const [gameResult, playersResult, eventsResult, entriesResult, awardsResult] = await Promise.all([
     state.supabase.from("games").select("*").eq("id", gameId).single(),
     state.supabase.from("players").select("*").eq("game_id", gameId).order("joined_at", { ascending: true }),
@@ -205,26 +270,13 @@ async function loadSnapshot() {
     throw awardsResult.error;
   }
 
-  state.game = gameResult.data;
-  state.players = playersResult.data ?? [];
-  state.events = eventsResult.data ?? [];
-  state.cardEntries = entriesResult.data ?? [];
-  state.awards = awardsResult.data ?? [];
-
-  if (!state.players.some((player) => player.id === state.session.playerId)) {
-    throw new Error("Deze speler bestaat niet meer in dit spel.");
-  }
-
-  state.session.gameCode = state.game.code;
-  saveJson(STORAGE_KEYS.session, state.session);
-  writeCodeToUrl(state.game.code);
-
-  syncDraftSelection();
-  syncActiveTab(previousStatus);
-  syncRecentChecks(previousCheckedIds);
-  syncAwardUpdates(previousAwardIds, hadLoadedGame);
-  syncFinishAnimation(previousStatus);
-  render();
+  return {
+    game: gameResult.data,
+    players: playersResult.data ?? [],
+    events: eventsResult.data ?? [],
+    cardEntries: entriesResult.data ?? [],
+    awards: awardsResult.data ?? [],
+  };
 }
 
 function getDefaultTabForStatus(status) {
@@ -312,28 +364,9 @@ function setupRealtime() {
   }
 
   teardownRealtime();
-
-  const gameId = state.session.gameId;
-  const channel = state.supabase.channel(`party-bingo:${gameId}`);
-  const refresh = () => scheduleRefresh();
-
-  channel
-    .on("postgres_changes", { event: "*", schema: "public", table: "games", filter: `id=eq.${gameId}` }, refresh)
-    .on("postgres_changes", { event: "*", schema: "public", table: "players", filter: `game_id=eq.${gameId}` }, refresh)
-    .on("postgres_changes", { event: "*", schema: "public", table: "events", filter: `game_id=eq.${gameId}` }, refresh)
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "player_card_entries", filter: `game_id=eq.${gameId}` },
-      refresh
-    )
-    .on("postgres_changes", { event: "*", schema: "public", table: "player_awards", filter: `game_id=eq.${gameId}` }, refresh)
-    .subscribe((status) => {
-      if (status === "CHANNEL_ERROR") {
-        pushToast("Realtime verbinding hapert. Ververs desnoods even.", "error");
-      }
-    });
-
-  state.channel = channel;
+  state.pollTimer = window.setInterval(() => {
+    scheduleRefresh();
+  }, POLL_INTERVAL_MS);
 }
 
 function teardownRealtime() {
@@ -342,6 +375,12 @@ function teardownRealtime() {
   }
 
   state.channel = null;
+
+  if (state.pollTimer) {
+    window.clearInterval(state.pollTimer);
+  }
+
+  state.pollTimer = null;
 }
 
 function scheduleRefresh() {
