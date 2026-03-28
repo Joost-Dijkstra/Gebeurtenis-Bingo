@@ -25,6 +25,7 @@ const state = {
   eventSearch: "",
   gameInfoCollapsed: false,
   showInviteSheet: false,
+  showSettingsSheet: false,
   supabase: null,
   game: null,
   players: [],
@@ -378,6 +379,7 @@ function clearSession({ keepUrlCode = false } = {}) {
   state.recentEntryIds = [];
   state.justFinished = false;
   state.showInviteSheet = false;
+  state.showSettingsSheet = false;
   state.gameInfoCollapsed = false;
   state.eventSearch = "";
   resetDraftDrag(false);
@@ -699,17 +701,99 @@ function renderLobby() {
   const buttonDisabled = configReady ? "" : "disabled";
 
   return `
-    <section class="panel panel-pad stack">
+    ${
+      configReady
+        ? `
+            <section class="lobby-topbar">
+              <span class="chip chip-success">Klaar om te spelen</span>
+              <button class="btn btn-small btn-outline" data-action="open-settings-sheet">Instellingen</button>
+            </section>
+          `
+        : renderSettingsPanel(true)
+    }
+
+    <section class="split">
+      <article class="panel panel-pad stack">
+        <div>
+          <p class="eyebrow">${configReady ? "1. Spel starten" : "2. Spel starten"}</p>
+          <h2>Nieuwe lobby maken</h2>
+          <p class="subtitle">De host krijgt alleen de minimale extra rechten die nodig zijn voor de flow.</p>
+        </div>
+
+        <form data-form="create-game" class="stack">
+          <label class="input-group">
+            <span class="input-label">Jouw naam</span>
+            <input
+              class="text-input"
+              type="text"
+              name="name"
+              maxlength="24"
+              placeholder="Bijvoorbeeld Sam"
+              value="${escapeHtml(state.lastName)}"
+              required
+            >
+          </label>
+
+          <button class="btn btn-primary" type="submit" ${buttonDisabled}>Maak lobby</button>
+        </form>
+      </article>
+
+      <article class="panel panel-pad stack">
+        <div>
+          <p class="eyebrow">${configReady ? "2. Meespelen" : "3. Meespelen"}</p>
+          <h2>Join via code</h2>
+          <p class="subtitle">Gebruik de spelcode van de host of open direct de gedeelde link.</p>
+        </div>
+
+        <form data-form="join-game" class="stack">
+          <label class="input-group">
+            <span class="input-label">Jouw naam</span>
+            <input
+              class="text-input"
+              type="text"
+              name="name"
+              maxlength="24"
+              placeholder="Bijvoorbeeld Noor"
+              value="${escapeHtml(state.lastName)}"
+              required
+            >
+          </label>
+
+          <label class="input-group">
+            <span class="input-label">Spelcode</span>
+            <input
+              class="text-input"
+              type="text"
+              name="code"
+              maxlength="6"
+              placeholder="ABCDE"
+              value="${escapeHtml(state.prefillCode)}"
+              required
+            >
+          </label>
+
+          <button class="btn btn-secondary" type="submit" ${buttonDisabled}>Join spel</button>
+        </form>
+      </article>
+    </section>
+
+    ${state.showSettingsSheet ? renderSettingsSheet() : ""}
+  `;
+}
+
+function renderSettingsPanel(isPrimary = false) {
+  return `
+    <section class="panel panel-pad stack ${isPrimary ? "" : "settings-panel-inline"}">
       <div class="title-row">
         <div>
-          <p class="eyebrow">1. Supabase koppelen</p>
-          <h2>Eenmalige projectinstellingen</h2>
+          <p class="eyebrow">Supabase koppelen</p>
+          <h2>Projectinstellingen</h2>
           <p class="subtitle">
-            Plak je Supabase project-URL en anon key hier. Draai eerst <code>supabase.sql</code> in de SQL editor.
+            Pas dit alleen aan als je een ander Supabase-project wilt gebruiken.
           </p>
         </div>
-        <span class="${configReady ? "chip chip-success" : "chip chip-muted"}">
-          ${configReady ? "Klaar om te spelen" : "Nog niet gekoppeld"}
+        <span class="${isConfigured() ? "chip chip-success" : "chip chip-muted"}">
+          ${isConfigured() ? "Gekoppeld" : "Niet gekoppeld"}
         </span>
       </div>
 
@@ -755,69 +839,21 @@ function renderLobby() {
         </div>
       </form>
     </section>
+  `;
+}
 
-    <section class="split">
-      <article class="panel panel-pad stack">
-        <div>
-          <p class="eyebrow">2. Spel starten</p>
-          <h2>Nieuwe lobby maken</h2>
-          <p class="subtitle">De host krijgt alleen de minimale extra rechten die nodig zijn voor de flow.</p>
+function renderSettingsSheet() {
+  return `
+    <section class="sheet-backdrop" data-action="close-settings-sheet">
+      <article class="invite-sheet panel panel-pad stack" role="dialog" aria-modal="true" aria-label="Instellingen">
+        <div class="title-row">
+          <div>
+            <p class="eyebrow">Instellingen</p>
+            <h3>Supabase project</h3>
+          </div>
+          <button class="btn btn-small btn-outline" data-action="close-settings-sheet">Sluiten</button>
         </div>
-
-        <form data-form="create-game" class="stack">
-          <label class="input-group">
-            <span class="input-label">Jouw naam</span>
-            <input
-              class="text-input"
-              type="text"
-              name="name"
-              maxlength="24"
-              placeholder="Bijvoorbeeld Sam"
-              value="${escapeHtml(state.lastName)}"
-              required
-            >
-          </label>
-
-          <button class="btn btn-primary" type="submit" ${buttonDisabled}>Maak lobby</button>
-        </form>
-      </article>
-
-      <article class="panel panel-pad stack">
-        <div>
-          <p class="eyebrow">3. Meespelen</p>
-          <h2>Join via code</h2>
-          <p class="subtitle">Gebruik de spelcode van de host of open direct de gedeelde link.</p>
-        </div>
-
-        <form data-form="join-game" class="stack">
-          <label class="input-group">
-            <span class="input-label">Jouw naam</span>
-            <input
-              class="text-input"
-              type="text"
-              name="name"
-              maxlength="24"
-              placeholder="Bijvoorbeeld Noor"
-              value="${escapeHtml(state.lastName)}"
-              required
-            >
-          </label>
-
-          <label class="input-group">
-            <span class="input-label">Spelcode</span>
-            <input
-              class="text-input"
-              type="text"
-              name="code"
-              maxlength="6"
-              placeholder="ABCDE"
-              value="${escapeHtml(state.prefillCode)}"
-              required
-            >
-          </label>
-
-          <button class="btn btn-secondary" type="submit" ${buttonDisabled}>Join spel</button>
-        </form>
+        ${renderSettingsPanel(false)}
       </article>
     </section>
   `;
@@ -1621,6 +1657,7 @@ async function handleSubmit(event) {
     state.config = { url, anonKey, publicAppUrl };
     saveJson(STORAGE_KEYS.config, state.config);
     connectSupabase();
+    state.showSettingsSheet = false;
     pushToast("Supabase instellingen opgeslagen.", "success");
 
     if (state.session?.gameId) {
@@ -1686,9 +1723,23 @@ async function handleClick(event) {
     return;
   }
 
+  if (action === "open-settings-sheet") {
+    state.showSettingsSheet = true;
+    render();
+    return;
+  }
+
   if (action === "close-invite-sheet") {
     if (event.target === actionTarget || actionTarget.dataset.action === "close-invite-sheet") {
       state.showInviteSheet = false;
+      render();
+    }
+    return;
+  }
+
+  if (action === "close-settings-sheet") {
+    if (event.target === actionTarget || actionTarget.dataset.action === "close-settings-sheet") {
+      state.showSettingsSheet = false;
       render();
     }
     return;

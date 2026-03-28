@@ -139,6 +139,14 @@ body.body-in-game .hero-copy {
   gap: 1rem;
 }
 
+.lobby-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
 .panel {
   background: var(--panel);
   border: 1px solid var(--line);
@@ -229,6 +237,13 @@ body.body-in-game .hero-copy {
 .grid-cards {
   display: grid;
   gap: 1rem;
+}
+
+.settings-panel-inline {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  padding: 0;
 }
 
 .input-group {
