@@ -1,26 +1,30 @@
 :root {
-  --bg: #06090d;
-  --bg-deep: #0d141b;
-  --panel: rgba(14, 20, 27, 0.8);
-  --panel-strong: rgba(22, 30, 39, 0.96);
-  --line: rgba(221, 230, 237, 0.1);
-  --line-strong: rgba(221, 230, 237, 0.18);
-  --text: #e8eef2;
-  --muted: #8ca0ad;
-  --accent: #5cf2b0;
-  --accent-deep: #27c681;
-  --accent-soft: rgba(92, 242, 176, 0.16);
-  --teal: #c3cfd8;
-  --teal-soft: rgba(195, 207, 216, 0.14);
-  --gold: #d4dbe2;
-  --success: #7df7c5;
-  --success-soft: rgba(125, 247, 197, 0.14);
-  --danger: #ff7c8f;
-  --shadow: 0 24px 60px rgba(0, 0, 0, 0.38);
+  --bg: #fff7ec;
+  --bg-deep: #ffe8c9;
+  --panel: rgba(255, 252, 245, 0.92);
+  --panel-strong: rgba(255, 247, 236, 0.98);
+  --line: rgba(163, 114, 58, 0.12);
+  --line-strong: rgba(163, 114, 58, 0.22);
+  --text: #3f2b1d;
+  --muted: #866d5c;
+  --accent: #63d66b;
+  --accent-deep: #2f8f43;
+  --accent-soft: rgba(99, 214, 107, 0.18);
+  --teal: #5b6df5;
+  --teal-soft: rgba(91, 109, 245, 0.15);
+  --gold: #ffbf47;
+  --gold-soft: rgba(255, 191, 71, 0.2);
+  --success: #2da95b;
+  --success-soft: rgba(45, 169, 91, 0.14);
+  --danger: #e96d7d;
+  --danger-soft: rgba(233, 109, 125, 0.16);
+  --violet: #9b6df2;
+  --violet-soft: rgba(155, 109, 242, 0.16);
+  --shadow: 0 18px 40px rgba(177, 130, 76, 0.18);
   --radius: 24px;
   --radius-sm: 16px;
-  --font-display: "Space Grotesk", sans-serif;
-  --font-body: "Manrope", sans-serif;
+  --font-display: "Fredoka", sans-serif;
+  --font-body: "Nunito", sans-serif;
 }
 
 * {
@@ -37,9 +41,10 @@ body {
   font-family: var(--font-body);
   color: var(--text);
   background:
-    radial-gradient(circle at top left, rgba(92, 242, 176, 0.15), transparent 26%),
-    radial-gradient(circle at bottom right, rgba(214, 223, 230, 0.12), transparent 28%),
-    linear-gradient(180deg, #04070a 0%, #0a1117 100%);
+    radial-gradient(circle at top left, rgba(255, 196, 107, 0.34), transparent 28%),
+    radial-gradient(circle at top right, rgba(91, 109, 245, 0.16), transparent 24%),
+    radial-gradient(circle at bottom left, rgba(99, 214, 107, 0.2), transparent 26%),
+    linear-gradient(180deg, #fff8ef 0%, #ffeecd 100%);
 }
 
 button,
@@ -55,7 +60,7 @@ button {
   position: fixed;
   border-radius: 999px;
   filter: blur(80px);
-  opacity: 0.42;
+  opacity: 0.55;
   pointer-events: none;
   z-index: 0;
 }
@@ -65,7 +70,7 @@ button {
   left: -2rem;
   width: 14rem;
   height: 14rem;
-  background: rgba(92, 242, 176, 0.22);
+  background: rgba(255, 191, 71, 0.3);
 }
 
 .ambient-b {
@@ -73,7 +78,7 @@ button {
   bottom: 8rem;
   width: 16rem;
   height: 16rem;
-  background: rgba(210, 219, 226, 0.16);
+  background: rgba(155, 109, 242, 0.18);
 }
 
 .app-shell {
@@ -115,7 +120,7 @@ body.body-in-game .hero-copy {
   font-weight: 800;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--violet);
 }
 
 .hero h1 {
@@ -152,7 +157,7 @@ body.body-in-game .hero-copy {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  backdrop-filter: blur(22px);
+  backdrop-filter: blur(10px);
 }
 
 .panel-pad {
@@ -209,7 +214,7 @@ body.body-in-game .hero-copy {
   font-size: 0.86rem;
   font-weight: 700;
   border: 1px solid transparent;
-  background: rgba(31, 39, 71, 0.06);
+  background: rgba(255, 244, 228, 0.9);
   color: var(--text);
 }
 
@@ -229,7 +234,7 @@ body.body-in-game .hero-copy {
 }
 
 .chip-muted {
-  background: rgba(31, 39, 71, 0.07);
+  background: rgba(255, 247, 236, 0.92);
   color: var(--muted);
   border-color: var(--line);
 }
@@ -261,15 +266,17 @@ body.body-in-game .hero-copy {
   width: 100%;
   border: 1px solid var(--line-strong);
   border-radius: 16px;
-  background: rgba(12, 17, 24, 0.92);
+  background: rgba(255, 255, 255, 0.88);
   padding: 0.92rem 1rem;
   color: var(--text);
-  transition: border-color 120ms ease, transform 120ms ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  transition: border-color 120ms ease, transform 120ms ease, box-shadow 120ms ease;
 }
 
 .text-input:focus {
   outline: none;
-  border-color: rgba(92, 242, 176, 0.58);
+  border-color: rgba(91, 109, 245, 0.42);
+  box-shadow: 0 0 0 4px rgba(91, 109, 245, 0.08);
   transform: translateY(-1px);
 }
 
@@ -284,8 +291,8 @@ body.body-in-game .hero-copy {
 
 .btn:hover:not(:disabled),
 .btn:focus-visible:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 10px 25px rgba(31, 39, 71, 0.14);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 12px 22px rgba(177, 130, 76, 0.16);
 }
 
 .btn:disabled {
@@ -294,29 +301,35 @@ body.body-in-game .hero-copy {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent) 0%, #25b976 100%);
-  color: #04110b;
+  background: linear-gradient(135deg, #69dd72 0%, #48c95a 100%);
+  color: #13311a;
+}
+
+.btn-primary:active:not(:disabled),
+.btn-secondary:active:not(:disabled),
+.btn-success:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
 }
 
 .btn-secondary {
-  background: linear-gradient(135deg, rgba(193, 206, 216, 0.18), rgba(114, 128, 140, 0.12));
+  background: linear-gradient(135deg, #fff2b8 0%, #ffd976 100%);
   color: var(--text);
-  border: 1px solid rgba(221, 230, 237, 0.14);
+  border: 1px solid rgba(224, 175, 77, 0.24);
 }
 
 .btn-success {
-  background: linear-gradient(135deg, #7df7c5 0%, #38cb88 100%);
-  color: #04110b;
+  background: linear-gradient(135deg, #7fe07d 0%, #5dc967 100%);
+  color: #15351b;
 }
 
 .btn-outline {
-  background: rgba(9, 14, 20, 0.74);
+  background: rgba(255, 255, 255, 0.75);
   color: var(--text);
   border: 1px solid var(--line-strong);
 }
 
 .btn-danger {
-  background: rgba(255, 124, 143, 0.12);
+  background: var(--danger-soft);
   color: var(--danger);
 }
 
@@ -413,9 +426,9 @@ body.body-in-game .hero-copy {
   gap: 0.55rem;
   padding: 0.55rem;
   border-radius: 24px;
-  background: rgba(8, 12, 17, 0.94);
-  border: 1px solid rgba(221, 230, 237, 0.12);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.36);
+  background: rgba(255, 250, 241, 0.94);
+  border: 1px solid rgba(173, 126, 75, 0.14);
+  box-shadow: 0 14px 32px rgba(177, 130, 76, 0.22);
   backdrop-filter: blur(24px);
 }
 
@@ -437,9 +450,9 @@ body.body-in-game .hero-copy {
 }
 
 .bottom-nav-button.is-active {
-  background: linear-gradient(135deg, rgba(92, 242, 176, 0.2), rgba(193, 206, 216, 0.12));
+  background: linear-gradient(135deg, rgba(91, 109, 245, 0.16), rgba(255, 191, 71, 0.22));
   color: var(--text);
-  box-shadow: inset 0 0 0 1px rgba(92, 242, 176, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(91, 109, 245, 0.18);
 }
 
 .bottom-nav-icon {
@@ -505,13 +518,14 @@ body.body-in-game .hero-copy {
 .roster-item {
   padding: 0.9rem;
   border-radius: 18px;
-  background: rgba(16, 23, 30, 0.92);
-  border: 1px solid rgba(221, 230, 237, 0.08);
+  background: rgba(255, 253, 249, 0.96);
+  border: 1px solid rgba(179, 132, 82, 0.12);
+  box-shadow: 0 10px 18px rgba(201, 163, 113, 0.12);
 }
 
 .event-item.is-triggered {
-  background: rgba(92, 242, 176, 0.12);
-  border-color: rgba(92, 242, 176, 0.24);
+  background: linear-gradient(180deg, rgba(226, 249, 221, 0.96), rgba(245, 255, 241, 0.96));
+  border-color: rgba(99, 214, 107, 0.28);
 }
 
 .event-head,
@@ -553,8 +567,8 @@ body.body-in-game .hero-copy {
   gap: 0.35rem;
   padding: 0.9rem 1rem;
   border-radius: 18px;
-  background: rgba(92, 242, 176, 0.08);
-  border: 1px solid rgba(92, 242, 176, 0.18);
+  background: linear-gradient(135deg, rgba(255, 245, 196, 0.95), rgba(255, 232, 177, 0.96));
+  border: 1px solid rgba(224, 175, 77, 0.22);
 }
 
 .invite-code-card strong {
@@ -592,10 +606,11 @@ body.body-in-game .hero-copy {
   text-align: center;
   font-weight: 700;
   line-height: 1.3;
-  background: linear-gradient(180deg, rgba(18, 25, 33, 0.98), rgba(11, 17, 24, 0.96));
-  border: 1px solid rgba(221, 230, 237, 0.1);
+  background: linear-gradient(180deg, rgba(255, 252, 247, 0.98), rgba(255, 244, 230, 0.98));
+  border: 2px solid rgba(216, 176, 112, 0.26);
   overflow: hidden;
-  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+  box-shadow: 0 8px 16px rgba(203, 165, 117, 0.14);
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
   color: var(--text);
 }
 
@@ -608,34 +623,35 @@ body.body-in-game .hero-copy {
 
 .board-cell.is-actionable {
   cursor: pointer;
-  box-shadow: inset 0 0 0 1px rgba(92, 242, 176, 0.08);
+  box-shadow: 0 10px 18px rgba(203, 165, 117, 0.16);
 }
 
 .board-cell.is-actionable:active {
-  transform: scale(0.98);
+  transform: translateY(1px) scale(0.98);
 }
 
 .board-cell::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.45) 100%);
+  background: linear-gradient(135deg, transparent 0%, rgba(255, 255, 255, 0.52) 100%);
   pointer-events: none;
 }
 
 .board-cell.is-empty {
-  color: rgba(102, 112, 143, 0.55);
+  color: rgba(143, 118, 97, 0.62);
   border-style: dashed;
+  background: rgba(255, 248, 237, 0.82);
 }
 
 .board-cell.is-checked {
-  background: linear-gradient(135deg, rgba(92, 242, 176, 0.2), rgba(30, 55, 42, 0.94));
-  border-color: rgba(92, 242, 176, 0.34);
-  box-shadow: 0 0 0 1px rgba(92, 242, 176, 0.16), 0 18px 34px rgba(0, 0, 0, 0.26);
+  background: linear-gradient(135deg, rgba(210, 247, 201, 0.98), rgba(237, 255, 231, 0.98));
+  border-color: rgba(99, 214, 107, 0.42);
+  box-shadow: 0 12px 20px rgba(99, 214, 107, 0.16);
 }
 
 .board-cell.is-hit {
-  animation: hit-pop 1.2s ease;
+  animation: hit-pop 0.85s ease;
 }
 
 .board-cell.is-drag-source {
@@ -644,9 +660,9 @@ body.body-in-game .hero-copy {
 }
 
 .board-cell.is-drag-target {
-  border-color: rgba(92, 242, 176, 0.62);
-  box-shadow: 0 0 0 2px rgba(92, 242, 176, 0.18), 0 18px 34px rgba(0, 0, 0, 0.28);
-  transform: translateY(-2px);
+  border-color: rgba(91, 109, 245, 0.48);
+  box-shadow: 0 0 0 3px rgba(91, 109, 245, 0.12), 0 16px 24px rgba(179, 142, 97, 0.18);
+  transform: translateY(-3px) rotate(-1deg);
 }
 
 .board-check {
@@ -658,7 +674,7 @@ body.body-in-game .hero-copy {
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: rgba(92, 242, 176, 0.18);
+  background: rgba(99, 214, 107, 0.16);
   color: var(--success);
   font-size: 0.95rem;
   font-weight: 900;
@@ -673,9 +689,9 @@ body.body-in-game .hero-copy {
   pointer-events: none;
   padding: 0.8rem 0.9rem;
   border-radius: 18px;
-  background: linear-gradient(180deg, rgba(27, 36, 45, 0.98), rgba(11, 17, 24, 0.98));
-  border: 1px solid rgba(92, 242, 176, 0.38);
-  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.34);
+  background: linear-gradient(180deg, rgba(255, 250, 238, 0.98), rgba(255, 239, 214, 0.98));
+  border: 2px solid rgba(91, 109, 245, 0.22);
+  box-shadow: 0 18px 30px rgba(177, 130, 76, 0.2);
   color: var(--text);
   font-weight: 800;
   line-height: 1.3;
@@ -684,10 +700,10 @@ body.body-in-game .hero-copy {
 .selection-button {
   width: 100%;
   text-align: left;
-  border: 1px solid rgba(221, 230, 237, 0.12);
+  border: 1px solid rgba(179, 132, 82, 0.14);
   border-radius: 18px;
   padding: 0.8rem 0.9rem;
-  background: rgba(16, 23, 30, 0.94);
+  background: rgba(255, 253, 248, 0.98);
   color: var(--text);
   display: grid;
   grid-template-columns: auto 1fr;
@@ -696,8 +712,8 @@ body.body-in-game .hero-copy {
 }
 
 .selection-button.is-selected {
-  border-color: rgba(92, 242, 176, 0.36);
-  background: rgba(92, 242, 176, 0.1);
+  border-color: rgba(91, 109, 245, 0.28);
+  background: linear-gradient(135deg, rgba(91, 109, 245, 0.1), rgba(255, 191, 71, 0.12));
 }
 
 .selection-order {
@@ -706,20 +722,20 @@ body.body-in-game .hero-copy {
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: rgba(221, 230, 237, 0.08);
+  background: rgba(255, 240, 209, 0.95);
   font-weight: 800;
 }
 
 .selection-button.is-selected .selection-order {
-  background: var(--accent);
-  color: #04110b;
+  background: var(--teal);
+  color: #fff;
 }
 
 .notice {
   padding: 0.9rem 1rem;
   border-radius: 18px;
-  background: rgba(14, 20, 27, 0.84);
-  border: 1px dashed rgba(221, 230, 237, 0.18);
+  background: rgba(255, 247, 232, 0.94);
+  border: 1px dashed rgba(204, 162, 94, 0.36);
   color: var(--muted);
 }
 
@@ -730,7 +746,7 @@ body.body-in-game .hero-copy {
   padding: 1rem;
   display: flex;
   align-items: flex-end;
-  background: rgba(3, 6, 9, 0.55);
+  background: rgba(114, 80, 40, 0.22);
   backdrop-filter: blur(10px);
 }
 
@@ -746,9 +762,9 @@ body.body-in-game .hero-copy {
   padding: 1.2rem;
   border-radius: 24px;
   background:
-    linear-gradient(135deg, rgba(92, 242, 176, 0.94), rgba(193, 206, 216, 0.88)),
-    radial-gradient(circle at top right, rgba(255, 255, 255, 0.18), transparent 40%);
-  color: #04110b;
+    linear-gradient(135deg, rgba(255, 207, 91, 0.96), rgba(255, 150, 109, 0.92)),
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.22), transparent 40%);
+  color: #4d2e09;
   animation: bingo-drop 480ms ease;
 }
 
@@ -766,8 +782,8 @@ body.body-in-game .hero-copy {
 }
 
 .score-item.is-winner {
-  background: rgba(242, 185, 75, 0.16);
-  border-color: rgba(242, 185, 75, 0.3);
+  background: linear-gradient(135deg, rgba(255, 243, 198, 0.98), rgba(255, 231, 168, 0.98));
+  border-color: rgba(255, 191, 71, 0.34);
 }
 
 .event-item .btn-success,
@@ -796,15 +812,15 @@ body.body-in-game .hero-copy {
 }
 
 .toast-info {
-  background: #121922;
+  background: #6b5cf0;
 }
 
 .toast-success {
-  background: #1a8f62;
+  background: #45b763;
 }
 
 .toast-error {
-  background: #b2445a;
+  background: #df6a7f;
 }
 
 .tiny {
@@ -813,16 +829,16 @@ body.body-in-game .hero-copy {
 
 @keyframes hit-pop {
   0% {
-    transform: scale(0.92);
-    box-shadow: 0 0 0 rgba(31, 157, 109, 0);
+    transform: scale(0.94) rotate(-1deg);
+    box-shadow: 0 0 0 rgba(255, 191, 71, 0);
   }
   35% {
-    transform: scale(1.04);
-    box-shadow: 0 0 0 12px rgba(31, 157, 109, 0.08);
+    transform: scale(1.03) rotate(1deg);
+    box-shadow: 0 0 0 10px rgba(255, 191, 71, 0.14);
   }
   100% {
     transform: scale(1);
-    box-shadow: 0 0 0 rgba(31, 157, 109, 0);
+    box-shadow: 0 0 0 rgba(255, 191, 71, 0);
   }
 }
 
