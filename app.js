@@ -559,6 +559,23 @@ function getStatusMeta() {
   }
 }
 
+function getShortPhaseLabel(status) {
+  switch (status) {
+    case "collecting_events":
+      return "Lijst vullen";
+    case "choosing_board_size":
+      return "Formaat";
+    case "building_cards":
+      return "Kaart maken";
+    case "playing":
+      return "Spelen";
+    case "finished":
+      return "Uitslag";
+    default:
+      return "Lobby";
+  }
+}
+
 function getPhaseChips() {
   const order = ["collecting_events", "choosing_board_size", "building_cards", "playing"];
   const steps = [
@@ -813,14 +830,15 @@ function renderGameView() {
   const activeEvents = getActiveEvents();
   const triggeredCount = activeEvents.filter((event) => event.triggered).length;
   const isCollapsed = state.gameInfoCollapsed && (state.game.status === "playing" || state.game.status === "finished");
+  const shortPhase = getShortPhaseLabel(state.game.status);
 
   return `
     <section class="game-shell">
       <section class="panel panel-pad status-banner game-status-card ${isCollapsed ? "is-collapsed" : ""}">
-        <div class="status-top-row">
-          <div>
+        <div class="status-top-row ${isCollapsed ? "is-collapsed" : ""}">
+          <div class="status-copy">
             <p class="eyebrow">Spelcode ${escapeHtml(state.game.code)}</p>
-            <h2 class="status-title">${escapeHtml(statusMeta.title)}</h2>
+            <h2 class="status-title">${escapeHtml(isCollapsed ? shortPhase : statusMeta.title)}</h2>
             ${isCollapsed ? "" : `<p class="subtitle compact-copy">${escapeHtml(statusMeta.copy)}</p>`}
           </div>
 
@@ -832,18 +850,22 @@ function renderGameView() {
           </div>
         </div>
 
-        <div class="compact-stats ${isCollapsed ? "is-collapsed" : ""}">
-          <span class="chip chip-accent">${escapeHtml(state.session.playerName)}</span>
-          ${isHost() ? '<span class="chip chip-teal">Host</span>' : ""}
-          <span class="chip chip-muted">${state.players.length} spelers</span>
-          <span class="chip chip-muted">${triggeredCount}/${activeEvents.length} gebeurd</span>
-          ${requiredCount ? `<span class="chip chip-muted">${state.game.board_size}x${state.game.board_size}</span>` : ""}
-        </div>
+        ${
+          isCollapsed
+            ? ""
+            : `
+                <div class="compact-stats">
+                  <span class="chip chip-accent">${escapeHtml(state.session.playerName)}</span>
+                  ${isHost() ? '<span class="chip chip-teal">Host</span>' : ""}
+                  <span class="chip chip-muted">${state.players.length} spelers</span>
+                  <span class="chip chip-muted">${triggeredCount}/${activeEvents.length} gebeurd</span>
+                  ${requiredCount ? `<span class="chip chip-muted">${state.game.board_size}x${state.game.board_size}</span>` : ""}
+                </div>
+              `
+        }
       </section>
 
-      <section class="game-stage-strip">
-        <div class="phase-row">${getPhaseChips()}</div>
-      </section>
+      ${isCollapsed ? "" : `<section class="game-stage-strip"><div class="phase-row">${getPhaseChips()}</div></section>`}
 
       <section class="tab-screen">
         ${renderActiveTab(statusMeta, scoreRows, activeEvents.length, requiredCount)}
@@ -872,8 +894,8 @@ function renderActiveTab(statusMeta, scoreRows, activeCount, requiredCount) {
 function renderBottomNavigation() {
   const tabs = [
     ["kaart", "Kaart"],
-    ["gebeurtenissen", "Gebeurtenissen"],
-    ["ranglijst", "Ranglijst"],
+    ["gebeurtenissen", "Lijst"],
+    ["ranglijst", "Stand"],
     ["lobby", "Lobby"],
   ];
 
@@ -887,6 +909,7 @@ function renderBottomNavigation() {
               data-action="switch-tab"
               data-tab="${tabId}"
             >
+              <span class="bottom-nav-icon" aria-hidden="true">${renderTabIcon(tabId)}</span>
               <span>${label}</span>
             </button>
           `
@@ -894,6 +917,41 @@ function renderBottomNavigation() {
         .join("")}
     </nav>
   `;
+}
+
+function renderTabIcon(tabId) {
+  switch (tabId) {
+    case "kaart":
+      return `
+        <svg viewBox="0 0 24 24" focusable="false">
+          <rect x="4" y="4" width="16" height="16" rx="3"></rect>
+          <path d="M12 4v16M4 12h16"></path>
+        </svg>
+      `;
+    case "gebeurtenissen":
+      return `
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M7 6h13M7 12h13M7 18h13"></path>
+          <circle cx="4" cy="6" r="1.5"></circle>
+          <circle cx="4" cy="12" r="1.5"></circle>
+          <circle cx="4" cy="18" r="1.5"></circle>
+        </svg>
+      `;
+    case "ranglijst":
+      return `
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M5 19V11M12 19V5M19 19v-8"></path>
+        </svg>
+      `;
+    case "lobby":
+    default:
+      return `
+        <svg viewBox="0 0 24 24" focusable="false">
+          <path d="M4 18v-1.5a3.5 3.5 0 0 1 3.5-3.5h9a3.5 3.5 0 0 1 3.5 3.5V18"></path>
+          <circle cx="12" cy="8" r="3"></circle>
+        </svg>
+      `;
+  }
 }
 
 function renderCardTab() {
