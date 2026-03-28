@@ -1402,7 +1402,7 @@ function renderSelectionItem(event, requiredCount) {
 }
 
 function renderEventListPanel(showAddForm) {
-  const activeEvents = getFilteredEvents();
+  const activeEvents = getActiveEvents();
 
   return `
     <article class="panel panel-pad stack">
@@ -1413,8 +1413,6 @@ function renderEventListPanel(showAddForm) {
         </div>
         <span class="chip chip-muted">${activeEvents.length} zichtbaar</span>
       </div>
-
-      ${renderEventSearchInput("Zoek in de gebeurtenissenlijst")}
 
       ${
         showAddForm && state.game.status === "collecting_events"
