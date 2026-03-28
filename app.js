@@ -1660,7 +1660,7 @@ function renderCardPreview(sourceEventIds, isDraft) {
         ${!event && !isDraft ? "disabled" : ""}
       >
         ${checked && !isDraft ? '<span class="board-check">&#10003;</span>' : ""}
-        <span>${escapeHtml(event?.text ?? "Leeg vak")}</span>
+        <span class="board-label">${escapeHtml(event?.text ?? "Leeg vak")}</span>
       </button>
     `;
   }).join("");

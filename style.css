@@ -738,16 +738,16 @@ body.body-in-game .hero-copy {
   transform: translateY(1px) scale(0.98);
 }
 
-.board-cell > span,
-.board-check {
+.board-label {
   position: relative;
-}
-
-.board-cell > span {
-  z-index: 1;
-}
-
-.board-cell > span {
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  padding: 0.2rem;
   transition: opacity 160ms ease, transform 160ms ease;
 }
 
@@ -783,7 +783,7 @@ body.body-in-game .hero-copy {
     0 12px 22px rgba(99, 214, 107, 0.18);
 }
 
-.board-cell.is-checked > span {
+.board-cell.is-checked .board-label {
   opacity: 0.92;
 }
 
@@ -814,7 +814,7 @@ body.body-in-game .hero-copy {
   display: grid;
   place-items: center;
   background: transparent;
-  color: rgba(45, 169, 91, 0.18);
+  color: rgba(45, 169, 91, 0.14);
   font-size: clamp(5rem, 20vw, 7rem);
   font-weight: 900;
   letter-spacing: -0.08em;
@@ -822,7 +822,7 @@ body.body-in-game .hero-copy {
   text-align: center;
   pointer-events: none;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.28);
-  transform: translateY(-2%);
+  transform: translate(7%, -2%);
   z-index: 3;
 }
 
