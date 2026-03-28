@@ -828,45 +828,9 @@ function renderGameView() {
   const requiredCount = getRequiredCount();
   const scoreRows = getScoreRows();
   const activeEvents = getActiveEvents();
-  const triggeredCount = activeEvents.filter((event) => event.triggered).length;
-  const isCollapsed = state.gameInfoCollapsed && (state.game.status === "playing" || state.game.status === "finished");
-  const shortPhase = getShortPhaseLabel(state.game.status);
 
   return `
     <section class="game-shell">
-      <section class="panel panel-pad status-banner game-status-card ${isCollapsed ? "is-collapsed" : ""}">
-        <div class="status-top-row ${isCollapsed ? "is-collapsed" : ""}">
-          <div class="status-copy">
-            <p class="eyebrow">Spelcode ${escapeHtml(state.game.code)}</p>
-            <h2 class="status-title">${escapeHtml(isCollapsed ? shortPhase : statusMeta.title)}</h2>
-            ${isCollapsed ? "" : `<p class="subtitle compact-copy">${escapeHtml(statusMeta.copy)}</p>`}
-          </div>
-
-          <div class="status-actions">
-            <button class="btn btn-small btn-primary btn-invite" data-action="open-invite-sheet">Uitnodigen</button>
-            <button class="btn btn-small btn-outline" data-action="toggle-game-info">
-              ${isCollapsed ? "Open" : "Klap in"}
-            </button>
-          </div>
-        </div>
-
-        ${
-          isCollapsed
-            ? ""
-            : `
-                <div class="compact-stats">
-                  <span class="chip chip-accent">${escapeHtml(state.session.playerName)}</span>
-                  ${isHost() ? '<span class="chip chip-teal">Host</span>' : ""}
-                  <span class="chip chip-muted">${state.players.length} spelers</span>
-                  <span class="chip chip-muted">${triggeredCount}/${activeEvents.length} gebeurd</span>
-                  ${requiredCount ? `<span class="chip chip-muted">${state.game.board_size}x${state.game.board_size}</span>` : ""}
-                </div>
-              `
-        }
-      </section>
-
-      ${isCollapsed ? "" : `<section class="game-stage-strip"><div class="phase-row">${getPhaseChips()}</div></section>`}
-
       <section class="tab-screen">
         ${renderActiveTab(statusMeta, scoreRows, activeEvents.length, requiredCount)}
       </section>
@@ -1018,6 +982,15 @@ function renderLobbyTab(statusMeta, scoreRows, activeCount, requiredCount) {
             <p class="subtitle compact-copy">${escapeHtml(statusMeta.copy)}</p>
           </div>
           <span class="chip chip-accent">${escapeHtml(state.game.code)}</span>
+        </div>
+
+        <div class="phase-row">${getPhaseChips()}</div>
+
+        <div class="compact-stats">
+          <span class="chip chip-muted">${escapeHtml(getShortPhaseLabel(state.game.status))}</span>
+          <span class="chip chip-muted">${state.players.length} spelers</span>
+          <span class="chip chip-muted">${state.events.filter((event) => event.triggered).length}/${activeCount} gebeurd</span>
+          ${requiredCount ? `<span class="chip chip-muted">Kaart ${state.game.board_size}x${state.game.board_size}</span>` : ""}
         </div>
 
         <div class="stack invite-block">
