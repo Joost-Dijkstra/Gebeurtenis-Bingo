@@ -16,6 +16,7 @@ const TOAST_LIFETIME_MS = 3200;
 
 const appElement = document.querySelector("#app");
 const toastElement = document.querySelector("#toast-stack");
+let deferredInstallPrompt = null;
 
 const state = {
   config: { ...DEFAULT_CONFIG, ...(loadJson(STORAGE_KEYS.config) ?? {}) },
@@ -48,6 +49,8 @@ const state = {
   recentEntryIds: [],
   justFinished: false,
   awardSpotlight: null,
+  canInstall: false,
+  isStandalone: false,
   drag: {
     active: false,
     pointerId: null,
@@ -71,6 +74,9 @@ document.addEventListener("pointercancel", handleDraftPointerUp);
 boot();
 
 async function boot() {
+  syncDisplayModeState();
+  setupInstallSupport();
+  registerServiceWorker();
   render();
 
   if (!window.supabase?.createClient) {
@@ -89,6 +95,66 @@ async function boot() {
   }
 
   render();
+}
+
+function syncDisplayModeState() {
+  state.isStandalone =
+    (window.matchMedia && window.matchMedia("(display-mode: standalone)").matches) ||
+    window.navigator.standalone === true;
+}
+
+function setupInstallSupport() {
+  if (setupInstallSupport.initialized) {
+    return;
+  }
+
+  setupInstallSupport.initialized = true;
+
+  if (window.matchMedia) {
+    const displayModeMedia = window.matchMedia("(display-mode: standalone)");
+    const handleModeChange = () => {
+      syncDisplayModeState();
+      if (state.isStandalone) {
+        deferredInstallPrompt = null;
+        state.canInstall = false;
+      }
+      render();
+    };
+
+    if (displayModeMedia.addEventListener) {
+      displayModeMedia.addEventListener("change", handleModeChange);
+    } else if (displayModeMedia.addListener) {
+      displayModeMedia.addListener(handleModeChange);
+    }
+  }
+
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    deferredInstallPrompt = event;
+    syncDisplayModeState();
+    state.canInstall = !state.isStandalone;
+    render();
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredInstallPrompt = null;
+    syncDisplayModeState();
+    state.canInstall = false;
+    render();
+    pushToast("App geinstalleerd.", "success");
+  });
+}
+
+async function registerServiceWorker() {
+  if (!("serviceWorker" in navigator) || window.location.protocol === "file:") {
+    return;
+  }
+
+  try {
+    await navigator.serviceWorker.register("./sw.js");
+  } catch (error) {
+    console.error("Service worker registreren mislukte.", error);
+  }
 }
 
 function loadJson(key) {
@@ -748,6 +814,7 @@ function renderToasts() {
 function render() {
   const focusState = captureFocusState();
   document.body.classList.toggle("body-in-game", Boolean(state.session?.gameId && state.game));
+  document.body.classList.toggle("body-standalone", state.isStandalone);
   document.body.dataset.activeTab = state.session?.gameId && state.game ? state.activeTab : "landing";
 
   if (!state.session) {
@@ -841,7 +908,10 @@ function renderLobby() {
         ? `
             <section class="lobby-topbar">
               <span class="chip chip-success">Klaar om te spelen</span>
-              <button class="btn btn-small btn-outline" data-action="open-settings-sheet">Instellingen</button>
+              <div class="meta-row">
+                ${renderInstallButton({ small: true })}
+                <button class="btn btn-small btn-outline" data-action="open-settings-sheet">Instellingen</button>
+              </div>
             </section>
           `
         : renderSettingsPanel(true)
@@ -911,6 +981,18 @@ function renderLobby() {
     </section>
 
     ${state.showSettingsSheet ? renderSettingsSheet() : ""}
+  `;
+}
+
+function renderInstallButton({ small = false } = {}) {
+  if (state.isStandalone || !state.canInstall) {
+    return "";
+  }
+
+  return `
+    <button class="btn ${small ? "btn-small" : ""} btn-secondary" type="button" data-action="install-app">
+      Installeer app
+    </button>
   `;
 }
 
@@ -1176,7 +1258,10 @@ function renderLobbyTab(statusMeta, scoreRows, activeCount, requiredCount) {
         </div>
 
         <div class="stack invite-block">
-          <button class="btn btn-primary btn-invite" data-action="open-invite-sheet">Spelers uitnodigen</button>
+          <div class="button-row">
+            <button class="btn btn-primary btn-invite" data-action="open-invite-sheet">Spelers uitnodigen</button>
+            ${renderInstallButton()}
+          </div>
           <div class="invite-code-card">
             <span class="input-label">Spelcode</span>
             <strong>${escapeHtml(state.game.code)}</strong>
@@ -1875,6 +1960,11 @@ async function handleClick(event) {
     return;
   }
 
+  if (action === "install-app") {
+    await promptInstall();
+    return;
+  }
+
   if (action === "close-invite-sheet") {
     if (event.target === actionTarget || actionTarget.dataset.action === "close-invite-sheet") {
       state.showInviteSheet = false;
@@ -2068,6 +2158,32 @@ async function shareInvite() {
     pushToast(isLocalFileMode() ? "Spelcode gekopieerd." : "Uitnodigingslink gekopieerd.", "success");
   } catch (error) {
     pushToast("Delen of kopieren lukt niet op dit apparaat.", "error");
+  }
+}
+
+async function promptInstall() {
+  if (state.isStandalone) {
+    pushToast("De app staat al op je startscherm.", "info");
+    return;
+  }
+
+  if (!deferredInstallPrompt) {
+    pushToast("Gebruik Toevoegen aan startscherm in je browsermenu.", "info");
+    return;
+  }
+
+  try {
+    deferredInstallPrompt.prompt();
+    const choiceResult = await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    state.canInstall = false;
+    render();
+
+    if (choiceResult?.outcome === "accepted") {
+      pushToast("Installatie gestart.", "success");
+    }
+  } catch (error) {
+    pushToast("Installeren lukt nu even niet.", "error");
   }
 }
 

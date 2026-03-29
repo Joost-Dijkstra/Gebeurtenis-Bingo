@@ -1,26 +1,26 @@
 :root {
-  --bg: #fff7ec;
-  --bg-deep: #ffe8c9;
-  --panel: rgba(255, 252, 245, 0.92);
-  --panel-strong: rgba(255, 247, 236, 0.98);
-  --line: rgba(163, 114, 58, 0.12);
-  --line-strong: rgba(163, 114, 58, 0.22);
-  --text: #3f2b1d;
-  --muted: #866d5c;
-  --accent: #63d66b;
-  --accent-deep: #2f8f43;
-  --accent-soft: rgba(99, 214, 107, 0.18);
-  --teal: #5b6df5;
-  --teal-soft: rgba(91, 109, 245, 0.15);
-  --gold: #ffbf47;
-  --gold-soft: rgba(255, 191, 71, 0.2);
-  --success: #2da95b;
-  --success-soft: rgba(45, 169, 91, 0.14);
-  --danger: #e96d7d;
-  --danger-soft: rgba(233, 109, 125, 0.16);
-  --violet: #9b6df2;
-  --violet-soft: rgba(155, 109, 242, 0.16);
-  --shadow: 0 18px 40px rgba(177, 130, 76, 0.18);
+  --bg: #f7f7ff;
+  --bg-deep: #eef5ff;
+  --panel: rgba(255, 255, 255, 0.9);
+  --panel-strong: rgba(255, 255, 255, 0.98);
+  --line: rgba(90, 96, 207, 0.12);
+  --line-strong: rgba(90, 96, 207, 0.22);
+  --text: #30244f;
+  --muted: #716d93;
+  --accent: #7bdc22;
+  --accent-deep: #439500;
+  --accent-soft: rgba(123, 220, 34, 0.18);
+  --teal: #45b6ff;
+  --teal-soft: rgba(69, 182, 255, 0.16);
+  --gold: #7f90ff;
+  --gold-soft: rgba(127, 144, 255, 0.18);
+  --success: #36ae48;
+  --success-soft: rgba(54, 174, 72, 0.14);
+  --danger: #e86e88;
+  --danger-soft: rgba(232, 110, 136, 0.16);
+  --violet: #7869f5;
+  --violet-soft: rgba(120, 105, 245, 0.16);
+  --shadow: 0 18px 42px rgba(102, 105, 198, 0.16);
   --radius: 24px;
   --radius-sm: 16px;
   --font-display: "Fredoka", sans-serif;
@@ -33,27 +33,40 @@
 
 html {
   font-size: 16px;
+  min-height: 100%;
+  background: #f7f7ff;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
+  min-height: 100dvh;
   font-family: var(--font-body);
   color: var(--text);
   background:
-    radial-gradient(circle at top left, rgba(255, 196, 107, 0.34), transparent 28%),
-    radial-gradient(circle at top right, rgba(91, 109, 245, 0.16), transparent 24%),
-    radial-gradient(circle at bottom left, rgba(99, 214, 107, 0.2), transparent 26%),
-    linear-gradient(180deg, #fff8ef 0%, #ffeecd 100%);
+    radial-gradient(circle at top left, rgba(120, 105, 245, 0.18), transparent 28%),
+    radial-gradient(circle at top right, rgba(69, 182, 255, 0.2), transparent 24%),
+    radial-gradient(circle at bottom left, rgba(123, 220, 34, 0.18), transparent 24%),
+    linear-gradient(180deg, #fbfcff 0%, #f2f5ff 54%, #f8fcff 100%);
+  overscroll-behavior-y: none;
+  overflow-x: hidden;
+  -webkit-tap-highlight-color: transparent;
 }
 
 button,
-input {
+input,
+textarea {
   font: inherit;
 }
 
 button {
   cursor: pointer;
+}
+
+img {
+  display: block;
+  max-width: 100%;
 }
 
 .ambient {
@@ -70,7 +83,7 @@ button {
   left: -2rem;
   width: 14rem;
   height: 14rem;
-  background: rgba(255, 191, 71, 0.3);
+  background: rgba(120, 105, 245, 0.22);
 }
 
 .ambient-b {
@@ -78,7 +91,7 @@ button {
   bottom: 8rem;
   width: 16rem;
   height: 16rem;
-  background: rgba(155, 109, 242, 0.18);
+  background: rgba(69, 182, 255, 0.18);
 }
 
 .app-shell {
@@ -86,21 +99,34 @@ button {
   z-index: 1;
   max-width: 1180px;
   margin: 0 auto;
-  padding: 1.2rem 1rem 4rem;
+  min-height: 100dvh;
+  padding:
+    max(1rem, env(safe-area-inset-top, 0px))
+    max(1rem, env(safe-area-inset-right, 0px))
+    calc(4rem + env(safe-area-inset-bottom, 0px))
+    max(1rem, env(safe-area-inset-left, 0px));
 }
 
 body.body-in-game .app-shell {
-  padding-bottom: 6.8rem;
+  padding-bottom: calc(6.8rem + env(safe-area-inset-bottom, 0px));
+}
+
+body.body-standalone .app-shell {
+  padding-top: max(0.65rem, env(safe-area-inset-top, 0px));
 }
 
 .hero {
   margin-bottom: 1rem;
-  padding: 1.4rem;
+  padding: 1.2rem 1rem 0.8rem;
 }
 
 body.body-in-game .hero {
   margin-bottom: 0.75rem;
-  padding: 0.6rem 0.2rem 0.3rem;
+  padding: 0.4rem 0 0.25rem;
+}
+
+body.body-standalone .hero {
+  padding-top: 0.35rem;
 }
 
 body.body-in-game .hero h1 {
@@ -112,6 +138,44 @@ body.body-in-game .hero-copy {
   margin-top: 0.45rem;
   max-width: 42rem;
   font-size: 0.92rem;
+}
+
+.hero-brand {
+  display: grid;
+  gap: 1rem;
+  align-items: center;
+}
+
+.hero-logo-wrap {
+  width: 6.5rem;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  padding: 0.3rem;
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(244, 247, 255, 0.92));
+  border: 1px solid rgba(90, 96, 207, 0.12);
+  box-shadow: 0 16px 32px rgba(102, 105, 198, 0.12);
+}
+
+.hero-logo {
+  width: 100%;
+  height: auto;
+}
+
+.hero-copy-block {
+  min-width: 0;
+}
+
+body.body-in-game .hero-brand {
+  grid-template-columns: auto 1fr;
+  gap: 0.85rem;
+}
+
+body.body-in-game .hero-logo-wrap {
+  width: 3.8rem;
+  border-radius: 22px;
+  box-shadow: 0 10px 22px rgba(102, 105, 198, 0.12);
 }
 
 .eyebrow {
@@ -214,7 +278,7 @@ body.body-in-game .hero-copy {
   font-size: 0.86rem;
   font-weight: 700;
   border: 1px solid transparent;
-  background: rgba(255, 244, 228, 0.9);
+  background: rgba(247, 248, 255, 0.92);
   color: var(--text);
 }
 
@@ -266,7 +330,7 @@ body.body-in-game .hero-copy {
   width: 100%;
   border: 1px solid var(--line-strong);
   border-radius: 16px;
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.96);
   padding: 0.92rem 1rem;
   color: var(--text);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
@@ -275,8 +339,8 @@ body.body-in-game .hero-copy {
 
 .text-input:focus {
   outline: none;
-  border-color: rgba(91, 109, 245, 0.42);
-  box-shadow: 0 0 0 4px rgba(91, 109, 245, 0.08);
+  border-color: rgba(120, 105, 245, 0.42);
+  box-shadow: 0 0 0 4px rgba(120, 105, 245, 0.1);
   transform: translateY(-1px);
 }
 
@@ -292,7 +356,7 @@ body.body-in-game .hero-copy {
 .btn:hover:not(:disabled),
 .btn:focus-visible:not(:disabled) {
   transform: translateY(-2px) scale(1.01);
-  box-shadow: 0 12px 22px rgba(177, 130, 76, 0.16);
+  box-shadow: 0 12px 22px rgba(102, 105, 198, 0.16);
 }
 
 .btn:disabled {
@@ -301,8 +365,8 @@ body.body-in-game .hero-copy {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #69dd72 0%, #48c95a 100%);
-  color: #13311a;
+  background: linear-gradient(135deg, #baff3f 0%, #6ddc17 100%);
+  color: #244304;
 }
 
 .btn-primary:active:not(:disabled),
@@ -312,14 +376,14 @@ body.body-in-game .hero-copy {
 }
 
 .btn-secondary {
-  background: linear-gradient(135deg, #fff2b8 0%, #ffd976 100%);
-  color: var(--text);
-  border: 1px solid rgba(224, 175, 77, 0.24);
+  background: linear-gradient(135deg, #9d8dff 0%, #4ab7ff 100%);
+  color: #ffffff;
+  border: 1px solid rgba(90, 96, 207, 0.16);
 }
 
 .btn-success {
-  background: linear-gradient(135deg, #7fe07d 0%, #5dc967 100%);
-  color: #15351b;
+  background: linear-gradient(135deg, #91f03b 0%, #59c900 100%);
+  color: #1e3905;
 }
 
 .btn-outline {
@@ -413,28 +477,28 @@ body.body-in-game .hero-copy {
 .tab-screen {
   display: grid;
   gap: 1rem;
-  --screen-wash: rgba(255, 191, 71, 0.12);
-  --screen-stripe: rgba(255, 191, 71, 0.26);
+  --screen-wash: rgba(120, 105, 245, 0.1);
+  --screen-stripe: rgba(120, 105, 245, 0.28);
 }
 
 .screen-kaart {
-  --screen-wash: rgba(99, 214, 107, 0.12);
-  --screen-stripe: rgba(99, 214, 107, 0.28);
+  --screen-wash: rgba(123, 220, 34, 0.12);
+  --screen-stripe: rgba(123, 220, 34, 0.28);
 }
 
 .screen-gebeurtenissen {
-  --screen-wash: rgba(255, 191, 71, 0.14);
-  --screen-stripe: rgba(255, 191, 71, 0.3);
+  --screen-wash: rgba(69, 182, 255, 0.12);
+  --screen-stripe: rgba(69, 182, 255, 0.28);
 }
 
 .screen-ranglijst {
-  --screen-wash: rgba(155, 109, 242, 0.12);
-  --screen-stripe: rgba(155, 109, 242, 0.28);
+  --screen-wash: rgba(120, 105, 245, 0.12);
+  --screen-stripe: rgba(120, 105, 245, 0.28);
 }
 
 .screen-lobby {
-  --screen-wash: rgba(91, 109, 245, 0.12);
-  --screen-stripe: rgba(91, 109, 245, 0.28);
+  --screen-wash: rgba(69, 182, 255, 0.12);
+  --screen-stripe: rgba(120, 105, 245, 0.24);
 }
 
 .tab-screen .panel {
@@ -472,16 +536,17 @@ body.body-in-game .hero-copy {
   border-radius: 22px;
   background:
     radial-gradient(circle at top right, rgba(255, 255, 255, 0.38), transparent 34%),
-    linear-gradient(135deg, rgba(145, 235, 146, 0.96), rgba(255, 221, 116, 0.92));
-  color: #4b300f;
-  box-shadow: 0 16px 28px rgba(176, 134, 84, 0.22);
+    linear-gradient(135deg, rgba(185, 255, 87, 0.96), rgba(81, 195, 255, 0.92));
+  color: #2d255d;
+  box-shadow: 0 16px 28px rgba(102, 105, 198, 0.2);
   animation: rank-pop 0.55s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .award-spotlight.is-grand {
   background:
     radial-gradient(circle at top right, rgba(255, 255, 255, 0.42), transparent 34%),
-    linear-gradient(135deg, rgba(255, 200, 103, 0.98), rgba(255, 148, 111, 0.94));
+    linear-gradient(135deg, rgba(120, 105, 245, 0.96), rgba(69, 182, 255, 0.92));
+  color: #ffffff;
 }
 
 .award-spotlight h3,
@@ -509,9 +574,9 @@ body.body-in-game .hero-copy {
   width: auto;
   max-width: calc(100vw - 1.5rem);
   border-radius: 24px;
-  background: rgba(255, 250, 241, 0.94);
-  border: 1px solid rgba(173, 126, 75, 0.14);
-  box-shadow: 0 14px 32px rgba(177, 130, 76, 0.22);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(90, 96, 207, 0.12);
+  box-shadow: 0 14px 32px rgba(102, 105, 198, 0.18);
   backdrop-filter: blur(24px);
 }
 
@@ -535,9 +600,9 @@ body.body-in-game .hero-copy {
 }
 
 .bottom-nav-button.is-active {
-  background: linear-gradient(135deg, rgba(91, 109, 245, 0.16), rgba(255, 191, 71, 0.22));
+  background: linear-gradient(135deg, rgba(120, 105, 245, 0.14), rgba(123, 220, 34, 0.16));
   color: var(--text);
-  box-shadow: inset 0 0 0 1px rgba(91, 109, 245, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(120, 105, 245, 0.18);
 }
 
 .bottom-nav-icon {
@@ -603,9 +668,9 @@ body.body-in-game .hero-copy {
 .roster-item {
   padding: 0.9rem;
   border-radius: 18px;
-  background: rgba(255, 253, 249, 0.96);
-  border: 1px solid rgba(179, 132, 82, 0.12);
-  box-shadow: 0 10px 18px rgba(201, 163, 113, 0.12);
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(90, 96, 207, 0.1);
+  box-shadow: 0 10px 18px rgba(102, 105, 198, 0.1);
 }
 
 .event-item.is-triggered {
@@ -652,8 +717,8 @@ body.body-in-game .hero-copy {
   gap: 0.35rem;
   padding: 0.9rem 1rem;
   border-radius: 18px;
-  background: linear-gradient(135deg, rgba(255, 245, 196, 0.95), rgba(255, 232, 177, 0.96));
-  border: 1px solid rgba(224, 175, 77, 0.22);
+  background: linear-gradient(135deg, rgba(240, 235, 255, 0.98), rgba(231, 247, 255, 0.98));
+  border: 1px solid rgba(120, 105, 245, 0.16);
 }
 
 .invite-code-card strong {
@@ -691,13 +756,13 @@ body.body-in-game .hero-copy {
   text-align: center;
   font-weight: 700;
   line-height: 1.3;
-  background: linear-gradient(180deg, rgba(255, 252, 247, 0.98), rgba(255, 244, 230, 0.98));
-  border: 2px solid rgba(216, 176, 112, 0.26);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(245, 246, 255, 0.98));
+  border: 2px solid rgba(120, 105, 245, 0.14);
   overflow: hidden;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.82),
-    0 2px 0 rgba(213, 170, 112, 0.26),
-    0 10px 18px rgba(203, 165, 117, 0.14);
+    0 2px 0 rgba(120, 105, 245, 0.18),
+    0 10px 18px rgba(102, 105, 198, 0.12);
   transition:
     transform 160ms ease,
     border-color 160ms ease,
@@ -708,15 +773,15 @@ body.body-in-game .hero-copy {
 }
 
 .board-grid .board-cell:not(.is-checked):not(.is-empty):nth-child(3n + 1) {
-  background: linear-gradient(180deg, rgba(255, 250, 241, 0.99), rgba(255, 240, 221, 0.98));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(242, 239, 255, 0.98));
 }
 
 .board-grid .board-cell:not(.is-checked):not(.is-empty):nth-child(3n + 2) {
-  background: linear-gradient(180deg, rgba(255, 252, 245, 0.99), rgba(244, 242, 255, 0.98));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(235, 247, 255, 0.98));
 }
 
 .board-grid .board-cell:not(.is-checked):not(.is-empty):nth-child(3n + 3) {
-  background: linear-gradient(180deg, rgba(255, 252, 247, 0.99), rgba(235, 248, 255, 0.98));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(244, 255, 232, 0.98));
 }
 
 .board-cell.is-draft {
@@ -730,8 +795,8 @@ body.body-in-game .hero-copy {
   cursor: pointer;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.85),
-    0 3px 0 rgba(213, 170, 112, 0.28),
-    0 12px 20px rgba(203, 165, 117, 0.16);
+    0 3px 0 rgba(120, 105, 245, 0.2),
+    0 12px 20px rgba(102, 105, 198, 0.16);
 }
 
 .board-cell.is-actionable:active {
@@ -764,18 +829,18 @@ body.body-in-game .hero-copy {
   position: absolute;
   inset: auto 0 0 0;
   height: 38%;
-  background: linear-gradient(180deg, transparent, rgba(235, 196, 146, 0.16));
+  background: linear-gradient(180deg, transparent, rgba(120, 105, 245, 0.08));
   pointer-events: none;
 }
 
 .board-cell.is-empty {
   color: rgba(143, 118, 97, 0.62);
   border-style: dashed;
-  background: rgba(255, 248, 237, 0.82);
+  background: rgba(255, 255, 255, 0.82);
 }
 
 .board-cell.is-checked {
-  background: linear-gradient(135deg, rgba(210, 247, 201, 0.98), rgba(237, 255, 231, 0.98));
+  background: linear-gradient(135deg, rgba(232, 255, 208, 0.98), rgba(245, 255, 239, 0.98));
   border-color: rgba(99, 214, 107, 0.42);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.72),
@@ -837,9 +902,9 @@ body.body-in-game .hero-copy {
   pointer-events: none;
   padding: 0.8rem 0.9rem;
   border-radius: 18px;
-  background: linear-gradient(180deg, rgba(255, 250, 238, 0.98), rgba(255, 239, 214, 0.98));
-  border: 2px solid rgba(91, 109, 245, 0.22);
-  box-shadow: 0 18px 30px rgba(177, 130, 76, 0.2);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(242, 247, 255, 0.98));
+  border: 2px solid rgba(120, 105, 245, 0.22);
+  box-shadow: 0 18px 30px rgba(102, 105, 198, 0.2);
   color: var(--text);
   font-weight: 800;
   line-height: 1.3;
@@ -848,10 +913,10 @@ body.body-in-game .hero-copy {
 .selection-button {
   width: 100%;
   text-align: left;
-  border: 1px solid rgba(179, 132, 82, 0.14);
+  border: 1px solid rgba(90, 96, 207, 0.12);
   border-radius: 18px;
   padding: 0.8rem 0.9rem;
-  background: rgba(255, 253, 248, 0.98);
+  background: rgba(255, 255, 255, 0.98);
   color: var(--text);
   display: grid;
   grid-template-columns: auto 1fr;
@@ -870,7 +935,7 @@ body.body-in-game .hero-copy {
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: rgba(255, 240, 209, 0.95);
+  background: rgba(241, 238, 255, 0.95);
   font-weight: 800;
 }
 
@@ -882,8 +947,8 @@ body.body-in-game .hero-copy {
 .notice {
   padding: 0.9rem 1rem;
   border-radius: 18px;
-  background: rgba(255, 247, 232, 0.94);
-  border: 1px dashed rgba(204, 162, 94, 0.36);
+  background: rgba(245, 248, 255, 0.94);
+  border: 1px dashed rgba(120, 105, 245, 0.26);
   color: var(--muted);
 }
 
@@ -894,7 +959,7 @@ body.body-in-game .hero-copy {
   padding: 1rem;
   display: flex;
   align-items: flex-end;
-  background: rgba(114, 80, 40, 0.22);
+  background: rgba(86, 85, 159, 0.18);
   backdrop-filter: blur(10px);
 }
 
@@ -910,9 +975,9 @@ body.body-in-game .hero-copy {
   padding: 1.2rem;
   border-radius: 24px;
   background:
-    linear-gradient(135deg, rgba(255, 207, 91, 0.96), rgba(255, 150, 109, 0.92)),
+    linear-gradient(135deg, rgba(120, 105, 245, 0.96), rgba(69, 182, 255, 0.92)),
     radial-gradient(circle at top right, rgba(255, 255, 255, 0.22), transparent 40%);
-  color: #4d2e09;
+  color: #ffffff;
   animation: bingo-drop 480ms ease;
 }
 
@@ -1053,7 +1118,11 @@ body.body-in-game .hero-copy {
 
 @media (min-width: 700px) {
   .app-shell {
-    padding: 1.4rem 1.4rem 4rem;
+    padding:
+      max(1.2rem, env(safe-area-inset-top, 0px))
+      max(1.4rem, env(safe-area-inset-right, 0px))
+      calc(4rem + env(safe-area-inset-bottom, 0px))
+      max(1.4rem, env(safe-area-inset-left, 0px));
   }
 
   body.body-in-game .app-shell {
@@ -1078,6 +1147,11 @@ body.body-in-game .hero-copy {
 
   .invite-sheet {
     border-radius: 28px;
+  }
+
+  .hero-brand {
+    grid-template-columns: auto 1fr;
+    gap: 1.2rem;
   }
 }
 

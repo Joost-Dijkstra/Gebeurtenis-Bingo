@@ -2,13 +2,21 @@
 <html lang="nl">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Party Bingo</title>
     <meta
       name="description"
       content="Mobile-first realtime bingo met gebeurtenissen voor feestjes en sociale bijeenkomsten."
     >
-    <meta name="theme-color" content="#fff4dc">
+    <meta name="application-name" content="Party Bingo">
+    <meta name="theme-color" content="#7869f5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Party Bingo">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="assets/logo-mark.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -23,9 +31,22 @@
 
     <div class="app-shell">
       <header class="hero">
-        <p class="eyebrow">Party Bingo</p>
-        <h1>Party bingo met gebeurtenissen.</h1>
-        <p class="hero-copy">Maak een lobby of join direct.</p>
+        <div class="hero-brand">
+          <div class="hero-logo-wrap">
+            <img
+              class="hero-logo"
+              src="assets/logo-mark.svg"
+              alt="Party Bingo logo"
+              width="120"
+              height="120"
+            >
+          </div>
+          <div class="hero-copy-block">
+            <p class="eyebrow">Party Bingo</p>
+            <h1>Party bingo met gebeurtenissen.</h1>
+            <p class="hero-copy">Maak een lobby of join direct.</p>
+          </div>
+        </div>
       </header>
 
       <main id="app" class="app-root" aria-live="polite">
