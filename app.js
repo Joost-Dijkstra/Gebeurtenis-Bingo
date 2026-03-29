@@ -17,6 +17,7 @@ const TOAST_LIFETIME_MS = 3200;
 const appElement = document.querySelector("#app");
 const toastElement = document.querySelector("#toast-stack");
 let deferredInstallPrompt = null;
+let serviceWorkerRegistrationTask = null;
 
 const state = {
   config: { ...DEFAULT_CONFIG, ...(loadJson(STORAGE_KEYS.config) ?? {}) },
@@ -70,6 +71,9 @@ document.addEventListener("pointerdown", handleDraftPointerDown);
 document.addEventListener("pointermove", handleDraftPointerMove);
 document.addEventListener("pointerup", handleDraftPointerUp);
 document.addEventListener("pointercancel", handleDraftPointerUp);
+window.addEventListener("load", () => {
+  registerServiceWorker();
+});
 
 boot();
 
@@ -150,9 +154,15 @@ async function registerServiceWorker() {
     return;
   }
 
+  if (serviceWorkerRegistrationTask) {
+    return serviceWorkerRegistrationTask;
+  }
+
   try {
-    await navigator.serviceWorker.register("./sw.js");
+    serviceWorkerRegistrationTask = navigator.serviceWorker.register("./sw.js");
+    await serviceWorkerRegistrationTask;
   } catch (error) {
+    serviceWorkerRegistrationTask = null;
     console.error("Service worker registreren mislukte.", error);
   }
 }
