@@ -64,6 +64,8 @@ const state = {
   toasts: [],
 };
 
+const INTERACTIVE_TAGS = new Set(["INPUT", "TEXTAREA", "SELECT"]);
+
 document.addEventListener("submit", handleSubmit);
 document.addEventListener("click", handleClick);
 document.addEventListener("input", handleInput);
@@ -147,6 +149,43 @@ function setupInstallSupport() {
     render();
     pushToast("App geinstalleerd.", "success");
   });
+}
+
+function getGameDisplayName(game = state.game) {
+  if (!game) {
+    return "";
+  }
+
+  return String(game.name || "").trim() || `Spel ${game.code}`;
+}
+
+function canHostManagePlayers() {
+  return isHost() && ["collecting_events", "choosing_board_size", "building_cards"].includes(state.game?.status);
+}
+
+function hasHostToolsSupport() {
+  return Boolean(
+    state.game &&
+      Object.prototype.hasOwnProperty.call(state.game, "name")
+  );
+}
+
+function isInteractiveFieldActive() {
+  const activeElement = document.activeElement;
+
+  if (!(activeElement instanceof HTMLElement)) {
+    return false;
+  }
+
+  if (!appElement.contains(activeElement)) {
+    return false;
+  }
+
+  if (!INTERACTIVE_TAGS.has(activeElement.tagName)) {
+    return activeElement.isContentEditable;
+  }
+
+  return !activeElement.hasAttribute("readonly") && !activeElement.hasAttribute("disabled");
 }
 
 async function registerServiceWorker() {
@@ -468,14 +507,43 @@ function scheduleRefresh() {
   }
 
   state.refreshTimer = window.setTimeout(async () => {
+    if (isInteractiveFieldActive()) {
+      state.refreshTimer = null;
+      state.refreshTimer = window.setTimeout(() => {
+        state.refreshTimer = null;
+        scheduleRefresh();
+      }, 700);
+      return;
+    }
+
     state.refreshTimer = null;
 
     try {
       await loadSnapshot();
     } catch (error) {
+      if (handleSessionEnded(error)) {
+        return;
+      }
       pushToast(normalizeError(error, "Kon de speldata niet verversen."), "error");
     }
   }, REFRESH_DELAY_MS);
+}
+
+function handleSessionEnded(error) {
+  const message = String(error?.message || error?.details || "");
+
+  if (
+    message.includes("Ongeldige spelerssessie") ||
+    message.includes("Deze speler bestaat niet meer in dit spel") ||
+    message.includes("Speler hoort niet bij dit spel")
+  ) {
+    clearSession({ keepUrlCode: true });
+    render();
+    pushToast("Je zit niet meer in dit spel.", "info");
+    return true;
+  }
+
+  return false;
 }
 
 function clearSession({ keepUrlCode = false } = {}) {
@@ -936,6 +1004,17 @@ function renderLobby() {
 
         <form data-form="create-game" class="stack">
           <label class="input-group">
+            <span class="input-label">Spelnaam</span>
+            <input
+              class="text-input"
+              type="text"
+              name="gameName"
+              maxlength="48"
+              placeholder="Bijvoorbeeld Feestje Fraya"
+            >
+          </label>
+
+          <label class="input-group">
             <span class="input-label">Jouw naam</span>
             <input
               class="text-input"
@@ -1253,7 +1332,7 @@ function renderLobbyTab(statusMeta, scoreRows, activeCount, requiredCount) {
         <div class="title-row">
           <div>
             <p class="eyebrow">Lobby</p>
-            <h3>Speloverzicht</h3>
+            <h3>${escapeHtml(getGameDisplayName())}</h3>
           </div>
           <span class="chip chip-accent">${escapeHtml(state.game.code)}</span>
         </div>
@@ -1280,6 +1359,7 @@ function renderLobbyTab(statusMeta, scoreRows, activeCount, requiredCount) {
 
         <div class="meta-row">
           <button class="btn btn-secondary" data-action="copy-link">${isLocalFileMode() ? "Kopieer code" : "Kopieer link"}</button>
+          ${isHost() && hasHostToolsSupport() ? '<button class="btn btn-outline" data-action="rename-game">Naam aanpassen</button>' : ""}
           <button class="btn btn-outline" data-action="leave-game">Verlaat spel</button>
         </div>
 
@@ -1369,6 +1449,11 @@ function renderLobbyPlayers() {
                 <div class="meta-row">
                   ${isCurrentPlayer ? '<span class="chip chip-accent">Jij</span>' : ""}
                   ${isPlayerHost ? '<span class="chip chip-teal">Host</span>' : ""}
+                  ${
+                    hasHostToolsSupport() && canHostManagePlayers() && !isCurrentPlayer && !isPlayerHost
+                      ? `<button class="btn btn-small btn-danger" data-action="kick-player" data-player-id="${player.id}">Verwijder</button>`
+                      : ""
+                  }
                 </div>
               </li>
             `;
@@ -1917,7 +2002,8 @@ async function handleSubmit(event) {
   if (formName === "create-game") {
     const formData = new FormData(form);
     const name = String(formData.get("name") || "").trim();
-    await createGame(name);
+    const gameName = String(formData.get("gameName") || "").trim();
+    await createGame(name, gameName);
     return;
   }
 
@@ -2001,6 +2087,16 @@ async function handleClick(event) {
     return;
   }
 
+  if (action === "rename-game") {
+    const nextName = window.prompt("Nieuwe spelnaam:", state.game?.name || "");
+    if (nextName === null) {
+      return;
+    }
+
+    await updateGameName(nextName);
+    return;
+  }
+
   if (action === "copy-link") {
     try {
       if (isLocalFileMode()) {
@@ -2077,6 +2173,23 @@ async function handleClick(event) {
 
   if (action === "toggle-card-event") {
     toggleCardEvent(eventId);
+    return;
+  }
+
+  if (action === "kick-player") {
+    const targetPlayerId = actionTarget.dataset.playerId || "";
+    const targetPlayer = state.players.find((player) => player.id === targetPlayerId);
+
+    if (!targetPlayer) {
+      pushToast("Speler niet gevonden.", "error");
+      return;
+    }
+
+    if (!window.confirm(`${targetPlayer.name} uit dit spel verwijderen?`)) {
+      return;
+    }
+
+    await kickPlayer(targetPlayerId);
     return;
   }
 
@@ -2197,7 +2310,7 @@ async function promptInstall() {
   }
 }
 
-async function createGame(name) {
+async function createGame(name, gameName = "") {
   await runMutation(async () => {
     const { data, error } = await state.supabase.rpc("create_game_with_host", {
       p_host_name: name,
@@ -2211,6 +2324,26 @@ async function createGame(name) {
     persistSession(sessionRow);
     await loadSnapshot();
     setupRealtime();
+    if (gameName) {
+      try {
+        const renameResult = await state.supabase.rpc("update_game_name", {
+          p_game_id: state.session.gameId,
+          p_player_id: state.session.playerId,
+          p_session_token: state.session.sessionToken,
+          p_name: gameName,
+        });
+
+        if (renameResult.error) {
+          throw renameResult.error;
+        }
+
+        await loadSnapshot();
+      } catch (error) {
+        if (!isMissingHostToolsSupport(error)) {
+          throw error;
+        }
+      }
+    }
     pushToast(`Lobby ${sessionRow.code} is aangemaakt.`, "success");
   });
 }
@@ -2250,6 +2383,53 @@ async function addEvent(text) {
     state.eventDraftText = "";
     pushToast("Gebeurtenis toegevoegd.", "success");
     await loadSnapshot();
+  });
+}
+
+async function updateGameName(name, { silent = false } = {}) {
+  await runMutation(async () => {
+    const { error } = await state.supabase.rpc("update_game_name", {
+      p_game_id: state.session.gameId,
+      p_player_id: state.session.playerId,
+      p_session_token: state.session.sessionToken,
+      p_name: name,
+    });
+
+    if (error) {
+      if (isMissingHostToolsSupport(error)) {
+        pushToast("Voer eerst de host-tools SQL-migratie uit.", "info");
+        return;
+      }
+      throw error;
+    }
+
+    await loadSnapshot();
+
+    if (!silent) {
+      pushToast("Spelnaam aangepast.", "success");
+    }
+  });
+}
+
+async function kickPlayer(targetPlayerId) {
+  await runMutation(async () => {
+    const { error } = await state.supabase.rpc("kick_player_from_game", {
+      p_game_id: state.session.gameId,
+      p_player_id: state.session.playerId,
+      p_session_token: state.session.sessionToken,
+      p_target_player_id: targetPlayerId,
+    });
+
+    if (error) {
+      if (isMissingHostToolsSupport(error)) {
+        pushToast("Voer eerst de host-tools SQL-migratie uit.", "info");
+        return;
+      }
+      throw error;
+    }
+
+    await loadSnapshot();
+    pushToast("Speler verwijderd.", "success");
   });
 }
 
@@ -2543,6 +2723,18 @@ async function runMutation(task) {
 function normalizeError(error, fallback) {
   const message = String(error?.message || "").trim();
   return message || fallback;
+}
+
+function isMissingHostToolsSupport(error) {
+  const message = String(error?.message || error?.details || "");
+  const code = String(error?.code || "");
+
+  return (
+    code === "42883" ||
+    message.includes("update_game_name") ||
+    message.includes("kick_player_from_game") ||
+    message.includes("column games.name does not exist")
+  );
 }
 
 function escapeHtml(value) {
